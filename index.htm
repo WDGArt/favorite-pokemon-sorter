@@ -1,0 +1,2839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ultimate Favorite Pokémon Sorter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    .volume-control {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+
+    .volume-control input[type="range"] {
+        width: 90px;
+    }
+
+  
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .app {
+      max-width: 900px;
+      width: 100%;
+      background: radial-gradient(circle at top, #111827, #020617 55%);
+      border-radius: 18px;
+      padding: 16px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      color: #facc15;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .status-bar {
+      margin: 8px 0;
+      font-size: 0.85rem;
+      color: #9ca3af;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-bar span {
+      white-space: nowrap;
+    }
+
+    button {
+      cursor: pointer;
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: #2563eb;
+      color: white;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.1s ease;
+      white-space: nowrap;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    button.secondary {
+      background: #374151;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .main-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 768px) {
+      .main-layout {
+        flex-direction: row;
+      }
+    }
+
+    .compare-area {
+      flex: 2;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      background: linear-gradient(145deg, #020617, #030712);
+    }
+
+    .compare-title {
+      text-align: center;
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    .cards-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+
+    .poke-card {
+      flex: 1 1 160px;
+      max-width: 230px;
+      background: #020617;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    .poke-name {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 2px;
+      text-transform: capitalize;
+    }
+
+    .poke-id {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .image-wrap {
+      width: 112px;
+      height: 112px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+
+    /* Selection Poké Ball behind the sprite */
+    .selection-ball {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      position: relative;
+      background: linear-gradient(
+        to bottom,
+        #ef4444 0%,
+        #ef4444 48%,
+        #111827 48%,
+        #111827 52%,
+        #f9fafb 52%,
+        #f9fafb 100%
+      );
+      border: 2px solid #111827;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .selection-center {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f9fafb;
+      border: 2px solid #111827;
+      box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.7);
+    }
+
+    /* Sprite inside the selection ball */
+    .selection-ball img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      position: relative;
+      z-index: 1;
+    }
+
+    .image-wrap img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .placeholder {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .choose-btn {
+      margin-top: 6px;
+      width: 100%;
+      font-size: 0.9rem;
+      background: #16a34a;
+    }
+
+    .choose-btn.right {
+      background: #ec4899;
+    }
+
+    .vs-tag {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #9ca3af;
+      text-align: center;
+      margin: 4px 0;
+    }
+
+    .compare-footer {
+      margin-top: 6px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .side-panel {
+      flex: 1;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      background: #020617;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 420px;
+    }
+
+    .side-panel h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .small-text {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .ranking-list {
+      flex: 1;
+      border-radius: 12px;
+      border: 1px solid #111827;
+      background: #030712;
+      padding: 6px 8px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+    }
+
+    .ranking-list ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ranking-list li {
+      padding: 2px 0;
+      border-bottom: 1px solid #020617;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .ranking-list li:last-child {
+      border-bottom: none;
+    }
+
+    .rank-num {
+      color: #9ca3af;
+      min-width: 32px;
+    }
+
+    .rank-name {
+      flex: 1;
+      text-transform: capitalize;
+    }
+
+    .rank-id {
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
+    .favorite-line {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fbbf24;
+    }
+
+    .log-box {
+      max-height: 80px;
+      overflow-y: auto;
+      font-size: 0.78rem;
+      border-radius: 8px;
+      border: 1px solid #111827;
+      padding: 4px 6px;
+      background: #020617;
+      color: #9ca3af;
+    }
+
+    .log-box p {
+      margin: 0 0 2px;
+    }
+
+    .log-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Full ranking Poké Ball grid */
+
+    .full-ranking-section {
+      margin-top: 16px;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 10px 12px;
+    }
+
+    .full-ranking-title {
+      margin: 0 0 4px;
+      font-size: 1rem;
+    }
+
+    .full-ranking-grid {
+      margin-top: 6px;
+      border-radius: 12px;
+      border: 1px solid #111827;
+      background: #030712;
+      padding: 8px 6px;
+      display: grid;
+      /* bigger slots so you can see it better */
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .full-ranking-empty {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      padding: 4px 6px;
+      grid-column: 1 / -1;
+      white-space: nowrap;
+    }
+
+    .ball-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #e5e7eb;
+    }
+
+    .ball-shell {
+      width: 110px;   /* larger for visibility */
+      height: 110px;
+      border-radius: 50%;
+      position: relative;
+      background: linear-gradient(to bottom,
+        #ef4444 0%,
+        #ef4444 48%,
+        #111827 48%,
+        #111827 52%,
+        #f9fafb 52%,
+        #f9fafb 100%);
+      border: 2px solid #111827;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ball-shell.mega-ring,
+    .selection-ball.mega-ring {
+      box-shadow: 0 0 0 4px #3b82f6, 0 3px 8px rgba(0, 0, 0, 0.85);
+    }
+
+    .ball-shell.gmax-ring,
+    .selection-ball.gmax-ring {
+      box-shadow: 0 0 0 4px #ef4444, 0 3px 8px rgba(0, 0, 0, 0.85);
+    }
+
+    .ball-shell.regional-ring,
+    .selection-ball.regional-ring {
+      box-shadow: 0 0 0 4px #a855f7, 0 3px 8px rgba(0, 0, 0, 0.85);
+    }
+
+    .ball-shell.variant-ring,
+    .selection-ball.variant-ring {
+      box-shadow: 0 0 0 4px #ec4899, 0 3px 8px rgba(0, 0, 0, 0.85);
+    }
+
+    .ball-shell.special-ring,
+    .selection-ball.special-ring {
+      box-shadow: 0 0 0 4px #22c55e, 0 3px 8px rgba(0, 0, 0, 0.85);
+    }
+
+
+    .ball-center {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f9fafb;
+      border: 2px solid #111827;
+      box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.7);
+    }
+
+    .ball-sprite {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      image-rendering: pixelated;
+      object-fit: contain;
+    }
+
+    .ball-rank {
+      margin-top: 4px;
+    }
+
+    /* Form badges bottom-right (image-based, with fallback text) */
+
+    .form-badge {
+        position: absolute;
+        bottom: 3px;
+        right: 3px;
+        width: 28px;
+        height: 28px;
+        z-index: 10;
+        background: #020617;
+        border-radius: 50%;
+        border: 1px solid #111827;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 4px rgba(0,0,0,0.8);
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+
+    .form-badge-icon {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .form-badge.mega-badge {
+      background: radial-gradient(circle at 30% 30%, #bfdbfe, #1d4ed8);
+    }
+
+    .form-badge.gmax-badge {
+      background: radial-gradient(circle at 30% 30%, #fecaca, #b91c1c);
+    }
+    
+    .form-badge.regional-badge {
+        background: radial-gradient(circle at 30% 30%, #e5d9ff, #6d28d9);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <audio id="bgm" src="https://files.catbox.moe/f4d7kn.mp3" loop></audio>
+    <header>
+      <h1>Ultimate Favorite Pokémon Sorter</h1>
+      <p class="subtitle">
+        Welcome to the Ultimate Favorite Pokémon Sorter. Here you will be asked to pick between two pokemon as to which you prefer, whether it be how it looks, performs in battle, or however you decide to pick.
+        One a pokémon is chosen, it will be added to the list of your full ranking. Be aware although the pokemon you will be shown are in National Pokédex Order, if that pokémon has a regional variant, mega,
+        and/or G-Max form you'll see those forms first before it moves onto the next pokémon. So you'll see Mega Venusaur and G-Max Venusaur before you see Charmander. Also rings will be placed around the
+        pokémon in the selection section to help tell the difference between forms with Blue = Mega, Red = G-Max, Purple = Regional Variant, Pink = variant(think floette flowers), and Green = Special one time
+        forms like Eternal FLower FLoette and Shadow Lugia. Thankfully I didn't add every gender difference, only ones that legitimentally count as alternate forms.
+      </p>
+    </header>
+
+    <div class="status-bar">
+        <span id="status-main">Loading Pokédex data from PokéAPI…</span>
+        <span id="status-progress"></span>
+
+        <div class="volume-control">
+            <label for="volume-slider">🔊</label>
+            <input
+                type="range"
+                id="volume-slider"
+                min="0"
+                max="100"
+                value="50"
+            />
+        </div>
+
+        <button id="music-btn" class="secondary" disabled>Music: Off</button>
+        <button id="start-btn" disabled>Start!</button>
+    </div>
+
+
+
+    <div class="main-layout">
+      <section class="compare-area">
+        <h2 class="compare-title" id="compare-title">Waiting to start…</h2>
+
+        <div class="cards-row">
+          <div class="poke-card" id="card-left">
+            <div class="poke-name" id="name-left">—</div>
+            <div class="poke-id" id="id-left"></div>
+            <div class="image-wrap">
+              <div class="selection-ball">
+                    <div class="selection-center"></div>
+                        <img id="img-left" alt="" style="display:none;">
+                    </div>
+                <div class="placeholder" id="img-placeholder-left">No image</div>
+            </div>
+
+            <button class="choose-btn" id="btn-left" disabled>I prefer this one</button>
+          </div>
+
+          <div>
+            <div class="vs-tag">VS</div>
+          </div>
+
+          <div class="poke-card" id="card-right">
+            <div class="poke-name" id="name-right">—</div>
+            <div class="poke-id" id="id-right"></div>
+            <div class="image-wrap">
+              <div class="selection-ball">
+                <div class="selection-center"></div>
+                    <img id="img-right" alt="" style="display:none;">
+                </div>
+              <div class="placeholder" id="img-placeholder-right">No image</div>
+            </div>
+
+            <button class="choose-btn right" id="btn-right" disabled>I prefer this one</button>
+          </div>
+        </div>
+
+        <div class="compare-footer">
+          <button id="skip-btn" class="secondary" disabled>Skip this battle</button>
+          <button id="reset-btn" class="secondary" disabled>Reset &amp; start over</button>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <div>
+          <h2>Current Ranking (Top 15)</h2>
+          <p class="small-text">
+            The list below updates as you go. #1 is your current favorite.
+          </p>
+        </div>
+        <div class="ranking-list" id="ranking-list">
+          <ul id="ranking-ul">
+            <li><span class="rank-num">–</span><span class="rank-name">No Pokémon ranked yet.</span></li>
+          </ul>
+        </div>
+        <div class="favorite-line" id="favorite-line"></div>
+        <div class="log-box" id="log-box">
+          <p>Log will appear here as you make choices.</p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Full ranking grid: Poké Balls with type-colored shells & form rings/badges -->
+    <section class="full-ranking-section">
+      <h2 class="full-ranking-title">Full Ranking Grid</h2>
+      <p class="small-text">
+        Each Poké Ball shows a ranked Pokémon. Top is its primary type color, bottom is its secondary (or primary again).
+        Blue ring = Mega, Red ring = G-Max, Purple ring = Regional, Pink = Variant, and Green = Special. Megas & G-Maxes
+        also have a small symbol at bottom-right, while Regional Variants have a symbol for which region is in question.
+        Clover = Alola, Stadium Symbol = Galar, Arceus' Ring = Hisui, and Tera Gem = Paldea.
+      </p>
+      <div class="full-ranking-grid" id="full-ranking-grid">
+        <div class="full-ranking-empty">No Pokémon ranked yet.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // --- CONFIG ---
+    const volumeSlider = document.getElementById("volume-slider");
+    const VOLUME_KEY = "favoritePokemonSorter_volume";
+
+    const bgm = document.getElementById("bgm");
+    const musicBtn = document.getElementById("music-btn");
+    let musicEnabled = false;
+
+
+    // Put YOUR icon URLs here (leave "" to just show text M / Gx)
+    const MEGA_ICON_URL = "https://archives.bulbagarden.net/media/upload/b/bb/Tretta_Mega_Evolution_icon.png";
+    const GMAX_ICON_URL = "https://archives.bulbagarden.net/media/upload/9/9f/Dynamax_icon.png";
+    const ALOLA_ICON_URL  = "https://archives.bulbagarden.net/media/upload/c/c3/Black_clover_VIII.png";
+    const GALAR_ICON_URL  = "https://archives.bulbagarden.net/media/upload/3/3e/Galar_symbol.png";
+    const HISUI_ICON_URL  = "https://archives.bulbagarden.net/media/upload/d/dc/Arceus_mark.png";
+    const PALDEA_ICON_URL = "https://archives.bulbagarden.net/media/upload/8/89/Paldea_icon.png";
+
+
+    const MAX_SPECIES_DEX_ID = 1025;
+
+    // Extra forms with formKind: "mega", "gmax", or "regional"
+    const EXTRA_FORMS_CONFIG = {
+      3: [
+        { pokemonName: "venusaur-mega", label: "Mega Venusaur", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/3-mega.png" },
+        { pokemonName: "venusaur-gmax", label: "G-Max Venusaur", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/3-gmax.png" }
+      ],
+      6: [
+        { pokemonName: "charizard-mega-x", label: "Mega Charizard X", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/6-mega-x.png" },
+        { pokemonName: "charizard-mega-y", label: "Mega Charizard Y", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/6-mega-y.png" },
+        { pokemonName: "charizard-gmax", label: "G-Max Charizard", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/6-gmax.png" }
+      ],
+      9: [
+        { pokemonName: "blastoise-mega", label: "Mega Blastoise", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/9-mega.png" },
+        { pokemonName: "blastoise-gmax", label: "G-Max Blastoise", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/9-gmax.png"}
+      ],
+      12: [
+        { pokemonName: "butterfree-gmax", label: "G-Max Butterfree", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/12-gmax.png" }
+      ],
+      15: [
+        { pokemonName: "beedrill-mega", label: "Mega Beedrill", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/15-mega.png" }    
+      ],
+      18: [
+        { pokemonName: "pidgeot-mega", label: "Mega Pidgeot", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/18-mega.png" }    
+      ],
+      19: [
+        { pokemonName: "rattata-alola", label: "Alolan Rattata", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/19-regional-a.png" } 
+      ],
+      20: [
+        { pokemonName: "raticate-alola", label: "Alolan Raticate", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/20-regional-a.png" }    
+      ],
+      26: [
+        { pokemonName: "raichu-alola", label: "Alolan Raichu", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/26-regional-a.png" }
+      ],
+      27: [
+        { pokemonName: "sandshrew-alola", label: "Alolan Sandshrew", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/27-regional-a.png" }    
+      ],
+      28: [
+        { pokemonName: "sandslash-alola", label: "Alolan Sandslash", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/28-regional-a.png" }    
+      ],
+      36: [
+        { pokemonName: "clefable-mega", label: "Mega Clefable", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/36-mega.png" }    
+      ],
+      37: [
+        { pokemonName: "vulpix-alola", label: "Alolan Vulpix", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/37-regional-a.png" }   
+      ],
+      38: [
+        { pokemonName: "ninetales-alola", label: "Alolan Ninetales", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/38-regional-a.png" }    
+      ],
+      50: [
+        { pokemonName: "diglett-alola", label: "Alolan Diglett", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/50-regional-a.png" } 
+      ],
+      51: [
+        { pokemonName: "dugtrio-alola", label: "Alolan Dugtrio", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/51-regional-a.png" } 
+      ],
+      52: [
+        { pokemonName: "meowth-alola", label: "Alolan Meowth", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/52-regional-a.png" } ,
+        { pokemonName: "meowth-galar", label: "Galarian Meowth", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/52-regional-g.png" } ,
+        { pokemonName: "meowth-gmax", label: "G-Max Meowth", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/52-gmax.png" }
+      ],
+      53: [
+        { pokemonName: "persian-alola", label: "Alolan Persian", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/53-regional-a.png" } 
+      ],
+      58: [
+        { pokemonName: "growlithe-hisui", label: "Hisuian Growlithe", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/58-regional-h.png" } 
+      ],
+      59: [
+        { pokemonName: "arcanine-hisui", label: "Hisuian Arcanine", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/59-regional-h.png" } 
+      ],
+      65: [
+        { pokemonName: "alakazam-mega", label: "Mega Alakazam", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/65-mega.png" } 
+      ],
+      68: [
+        { pokemonName: "machamp-gmax", label: "G-Max Machamp", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/68-gmax.png" } 
+      ],
+      71: [
+        { pokemonName: "victreebel-mega", label: "Mega Victreebel", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/71-mega.png" } 
+      ],
+      74: [
+        { pokemonName: "geodude-alola", label: "Alolan Geodude", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/74-regional-a.png" } 
+      ],
+      75: [
+        { pokemonName: "graveler-alola", label: "Alolan Graveler", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/75-regional-a.png" } 
+      ],
+      76: [
+        { pokemonName: "golem-alola", label: "Alolan Golem", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/76-regional-a.png" } 
+      ],
+      77: [
+        { pokemonName: "ponyta-galar", label: "Galarian Ponyta", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/77-regional-g.png" } 
+      ],
+      78: [
+        { pokemonName: "rapidash-galar", label: "Galarian Rapidash", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/78-regional-g.png" } 
+      ],
+      79: [
+        { pokemonName: "slowpoke-galar", label: "Galarian Slowpoke", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/79-regional-g.png" } 
+      ],
+      80: [
+        { pokemonName: "slowbro-mega", label: "Mega Slowbro", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/80-mega.png" } ,
+        { pokemonName: "slowbro-galar", label: "Galarian Slowbro", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/80-regional-g.png" }
+      ],
+      83: [
+        { pokemonName: "farfetchd-galar", label: "Galarian Farfetch'd", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/83-regional-g.png" } 
+      ],
+      88: [
+        { pokemonName: "grimer-alola", label: "Alolan Grimer", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/88-regional-a.png" } 
+      ],
+      89: [
+        { pokemonName: "muk-alola", label: "Alolan Muk", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/89-regional-a.png" } 
+      ],
+      94: [
+        { pokemonName: "gengar-mega", label: "Mega Gengar", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/94-mega.png" } 
+      ],
+      99: [
+        { pokemonName: "kingler-gmax", label: "G-Max Kingler", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/99-gmax.png" } 
+      ],
+      100: [
+        { pokemonName: "voltorb-hisui", label: "Hisuian Voltorb", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/100-regional-h.png" } 
+      ],
+      101: [
+        { pokemonName: "electrode-hisui", label: "Hisuian Electrode", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/101-regional-h.png" } 
+      ],
+      103: [
+        { pokemonName: "exeggutor-alola", label: "Alolan Exeggutor", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/103-regional-a.png" } 
+      ],
+      105: [
+        { pokemonName: "marowak-alola", label: "Alolan Marowak", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/105-regional-a.png" } 
+      ],
+      110: [
+        { pokemonName: "weezing-galar", label: "Galarian Weezing", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/110-regional-g.png" } 
+      ],
+      115: [
+        { pokemonName: "kangaskhan-mega", label: "Mega Kangaskhan", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/115-mega.png" } 
+      ],
+      121: [
+        { pokemonName: "starmie-mega", label: "Mega Starmie", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/121-mega.png" } 
+      ],
+      122: [
+        { pokemonName: "mr-mime-galar", label: "Galarian Mr. Mine", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/122-regional-g.png" } 
+      ],
+      127: [
+        { pokemonName: "pinsir-mega", label: "Mega Pinsir", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/127-mega.png" } 
+      ],
+      128: [
+        { pokemonName: "tauros-paldea-combat-breed", label: "Combat Breed Tauros", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/128-regional-p-combat.png" } ,
+        { pokemonName: "tauros-paldea-blaze-breed", label: "Blaze Breed Tauros", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/128-regional-p-blaze.png" } ,
+        { pokemonName: "tauros-paldea-aqua-breed", label: "Aqua Breed Tauros", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/128-regional-p-aqua.png" } 
+      ],
+      130: [
+        { pokemonName: "gyarados-mega", label: "Mega Gyarados", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/130-mega.png" } 
+      ],
+      131: [
+        { pokemonName: "lapras-gmax", label: "G-Max Lapras", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/131-gmax.png" } 
+      ],
+      142: [
+        { pokemonName: "aerodactyl-mega", label: "Mega Aerodactyl", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/142-mega.png" } 
+      ],
+      143: [
+        { pokemonName: "snorlax-gmax", label: "G-Max Snorlax", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/143-gmax.png" } 
+      ],
+      144: [
+        { pokemonName: "articuno-galar", label: "Galarian Articuno", formKind: "regional" , spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/144-regional-g.png"} 
+      ],
+      145: [
+        { pokemonName: "zapdos-galar", label: "Galarian Zapdos", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/145-regional-g.png" } 
+      ],
+      146: [
+        { pokemonName: "moltres-galar", label: "Galarian Moltres", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/146-regional-g.png" } 
+      ],
+      149: [
+        { pokemonName: "Dragonite-mega", label: "Mega Dragonite", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/149-mega.png" } 
+      ],
+      150: [
+        { pokemonName: "mewtwo-mega-x", label: "Mega Mewtwo X", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/150-mega-x.png" } ,
+        { pokemonName: "mewtwo-mega-y", label: "Mega Mewtwo Y", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/150-mega-y.png" }
+      ],
+      154: [
+        { pokemonName: "meganium-mega", label: "Mega Meganium", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/154-mega.png" } 
+      ],
+      157: [
+        { pokemonName: "typhlosion-hisui", label: "Hisuian Typhlosion", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/157-regional-h.png" } 
+      ],
+      160: [
+        { pokemonName: "feraligatr-mega", label: "Mega Feraligatr", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/160-mega.png" } 
+      ],
+      181: [
+        { pokemonName: "ampharos-mega", label: "Mega Ampharos", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/181-mega.png" } 
+      ],
+      194: [
+        { pokemonName: "wooper-paldea", label: "Paldean Wooper", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/194-regional-p.png" } 
+      ],
+      199: [
+        { pokemonName: "slowking-galar", label: "Galarian Slowking", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/199-regional-g.png" } 
+      ],
+      201: [
+        { pokemonName: "unown", label: "Unown (B)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-b.png" } ,
+        { pokemonName: "unown", label: "Unown (C)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-c.png" } ,
+        { pokemonName: "unown", label: "Unown (D)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-d.png" } ,
+        { pokemonName: "unown", label: "Unown (E)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-e.png" } ,
+        { pokemonName: "unown", label: "Unown (F)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-f.png" } ,
+        { pokemonName: "unown", label: "Unown (G)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-g.png" } ,
+        { pokemonName: "unown", label: "Unown (H)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-h.png" } ,
+        { pokemonName: "unown", label: "Unown (I)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-i.png" } ,
+        { pokemonName: "unown", label: "Unown (J)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-j.png" } ,
+        { pokemonName: "unown", label: "Unown (K)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-k.png" } ,
+        { pokemonName: "unown", label: "Unown (L)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-l.png" } ,
+        { pokemonName: "unown", label: "Unown (M)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-m.png" } ,
+        { pokemonName: "unown", label: "Unown (N)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-n.png" } ,
+        { pokemonName: "unown", label: "Unown (O)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-o.png" } ,
+        { pokemonName: "unown", label: "Unown (P)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-p.png" } ,
+        { pokemonName: "unown", label: "Unown (Q)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-q.png" } ,
+        { pokemonName: "unown", label: "Unown (R)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-r.png" } ,
+        { pokemonName: "unown", label: "Unown (S)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-s.png" } ,
+        { pokemonName: "unown", label: "Unown (T)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-t.png" } ,
+        { pokemonName: "unown", label: "Unown (U)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-u.png" } ,
+        { pokemonName: "unown", label: "Unown (V)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-v.png" } ,
+        { pokemonName: "unown", label: "Unown (W)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-w.png" } ,
+        { pokemonName: "unown", label: "Unown (X)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-x.png" } ,
+        { pokemonName: "unown", label: "Unown (Y)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-y.png" } ,
+        { pokemonName: "unown", label: "Unown (Z)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-z.png" } ,
+        { pokemonName: "unown", label: "Unown (!)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-exclamation.png" } ,
+        { pokemonName: "unown", label: "Unown (?)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-question.png" } ,
+      ],
+      208: [
+        { pokemonName: "steelix-mega", label: "Mega Steelix", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/208-mega.png" } 
+      ],
+      211: [
+        { pokemonName: "qwilfish-hisui", label: "Hisuian Qwilfish", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/211-regional-h.png" } 
+      ],
+      212: [
+        { pokemonName: "scizor-mega", label: "Mega Scizor", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/212-mega.png" } 
+      ],
+      214: [
+        { pokemonName: "heracross-mega", label: "Mega Heracross", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/214-mega.png" } 
+      ],
+      215: [
+        { pokemonName: "sneasel-hisui", label: "Hisuian Sneasel", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/215-regional-h.png" } 
+      ],
+      222: [
+        { pokemonName: "corsola-galar", label: "Galarian Corsola", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/222-regional-g.png" } 
+      ],
+      227: [
+        { pokemonName: "skarmory-mega", label: "Mega Skarmory", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/227-mega.png" } 
+      ],
+      229: [
+        { pokemonName: "houndoom-mega", label: "Mega Houndoom", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/229-mega.png" } 
+      ],
+      248: [
+        { pokemonName: "tyranitar-mega", label: "Mega Tyranitar", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/248-mega.png" } 
+      ],
+      249: [
+        { pokemonName: "lugia-shadow", label: "Shadow Lugia", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/forgotten-dex/pokemon/249-xd-shadow-aura.png", primaryTypeOverride: "psychic", secondaryTypeOverride: "flying" } 
+      ],
+      254: [
+        { pokemonName: "sceptile-mega", label: "Mega Sceptile", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/254-mega.png" }
+      ],
+      257: [
+        { pokemonName: "blaziken-mega", label: "Mega Blaziken", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/257-mega.png" }
+      ],
+      260: [
+        { pokemonName: "swampert-mega", label: "Mega Swampert", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/260-mega.png" }
+      ],
+      263: [
+        { pokemonName: "zigzagoon-galar", label: "Galarian Zigzagoon", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/263-regional-g.png" }
+      ],
+      264: [
+        { pokemonName: "linoone-galar", label: "Galarian Linoone", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/264-regional-g.png" }
+      ],
+      282: [
+        { pokemonName: "gardevoir-mega", label: "Mega Gardevoir", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/282-mega.png" }
+      ],
+      302: [
+        { pokemonName: "sableye-mega", label: "Mega Sableye", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/302-mega.png" }
+      ],
+      303: [
+        { pokemonName: "mawile-mega", label: "Mega Mawile", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/303-mega.png" }
+      ],
+      306: [
+        { pokemonName: "aggron-mega", label: "Mega Aggron", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/306-mega.png" }
+      ],
+      308: [
+        { pokemonName: "medicham-mega", label: "Mega Medicham", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/308-mega.png" }
+      ],
+      310: [
+        { pokemonName: "manectric-mega", label: "Mega Manectric", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/310-mega.png" }
+      ],
+      319: [
+        { pokemonName: "sharpedo-mega", label: "Mega Sharpedo", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/319-mega.png" }
+      ],
+      323: [
+        { pokemonName: "camerupt-mega", label: "Mega Camerupt", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/323-mega.png" }
+      ],
+      334: [
+        { pokemonName: "altaria-mega", label: "Mega Altaria", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/334-mega.png" }
+      ],
+      351: [
+        { pokemonName: "castform-sunny", label: "Sunny Castform", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/351-sunny.png" },
+        { pokemonName: "castform-rainy", label: "Rainy Castform", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/351-rainy.png" },
+        { pokemonName: "castform-snowy", label: "Snowy Castform", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/351-snowy.png" }
+      ],
+      354: [
+        { pokemonName: "banette-mega", label: "Mega Banette", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/354-mega.png" }
+      ],
+      359: [
+        { pokemonName: "absol-mega", label: "Mega Absol", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/359-mega.png" }
+      ],
+      362: [
+        { pokemonName: "glalie-mega", label: "Mega Glalie", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/362-mega.png" }
+      ],
+      373: [
+        { pokemonName: "salamence-mega", label: "Mega Salamence", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/373-mega.png" }
+      ],
+      376: [
+        { pokemonName: "metagross-mega", label: "Mega Metagross", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/376-mega.png" }
+      ],
+      380: [
+        { pokemonName: "latias-mega", label: "Mega Latias", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/380-mega.png" }
+      ],
+      381: [
+        { pokemonName: "latios-mega", label: "Mega Latios", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/381-mega.png" }
+      ],
+      382: [
+        { pokemonName: "kyogre-primal", label: "Primal Kyogre", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/382-mega.png" }
+      ],
+      383: [
+        { pokemonName: "groudon-primal", label: "Primal Groudon", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/383-mega.png" }
+      ],
+      384: [
+        { pokemonName: "rayquaza-mega", label: "Mega Rayquaza", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/384-mega.png" }
+      ],
+      386: [
+        { pokemonName: "deoxys-attack", label: "Deoxys (Attack Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/386-attack.png" },
+        { pokemonName: "deoxys-defense", label: "Deoxys (Defense Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/386-defense.png" },
+        { pokemonName: "deoxys-speed", label: "Deoxys (Speed Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/386-speed.png" }
+      ],
+      412: [
+        { pokemonName: "burmy", label: "Burmy (Sandy Cloak)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/412-sandy.png" },
+        { pokemonName: "burmy", label: "Burmy (Trash Cloak)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/412-trash.png" }
+      ],
+      413: [
+        { pokemonName: "wormadam-sandy", label: "Wormadam (Sandy Cloak)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/413-sandy.png" },
+        { pokemonName: "wormadam-trash", label: "Wormadam (Trash Cloak)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/413-trash.png" }
+      ],
+      422: [
+        { pokemonName: "shellos", label: "Shellos (East Sea)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/422-east.png" }
+      ],
+      423: [
+        { pokemonName: "gastrodon", label: "Gastrodon (East Sea)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/423-east.png" }
+      ],
+      428: [
+        { pokemonName: "lopunny-mega", label: "Mega Lopunny", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/428-mega.png" }
+      ],
+      445: [
+        { pokemonName: "garchomp-mega", label: "Mega Garchomp", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/445-mega.png" }
+      ],
+      448: [
+        { pokemonName: "lucario-mega", label: "Mega Lucario", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/448-mega.png" }
+      ],
+      460: [
+        { pokemonName: "abomasnow-mega", label: "Mega Abomasnow", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/460-mega.png" }
+      ],
+      475: [
+        { pokemonName: "gallade-mega", label: "Mega Gallade", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/475-mega.png" }
+      ],
+      478: [
+        { pokemonName: "froslass-mega", label: "Mega Froslass", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/478-mega.png" }
+      ],
+      479: [
+        { pokemonName: "rotom-heat", label: "Rotom (Heat)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/479-heat.png" },
+        { pokemonName: "rotom-wash", label: "Rotom (Wash)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/479-wash.png" },
+        { pokemonName: "rotom-frost", label: "Rotom (Frost)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/479-frost.png" },
+        { pokemonName: "rotom-fan", label: "Rotom (Fan)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/479-fan.png" },
+        { pokemonName: "rotom-mow", label: "Rotom (Mow)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/479-mow.png" }
+      ],
+      483: [
+        { pokemonName: "dialga-origin", label: "Dialga (Origin Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/483-origin.png" }
+      ],
+      484: [
+        { pokemonName: "palkia-origin", label: "Palkia (Origin Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/484-origin.png" }
+      ],
+      487: [
+        { pokemonName: "giratina-origin", label: "Giratina (Origin Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/487-origin.png" }
+      ],
+      492: [
+        { pokemonName: "shaymin-sky", label: "Shaymin (Sky Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/492-sky.png" }
+      ],
+      493: [
+        { pokemonName: "acreus", label: "Arceus (Bug Type)", primaryTypeOverride: "bug", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-bug.png" },
+        { pokemonName: "acreus", label: "Arceus (Dark Type)", primaryTypeOverride: "dark", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-dark.png" },
+        { pokemonName: "acreus", label: "Arceus (Dragon Type)", primaryTypeOverride: "dragon", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-dragon.png" },
+        { pokemonName: "acreus", label: "Arceus (Electric Type)", primaryTypeOverride: "electric", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-electric.png" },
+        { pokemonName: "acreus", label: "Arceus (Fighting Type)", primaryTypeOverride: "fighting", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-fighting.png" },
+        { pokemonName: "acreus", label: "Arceus (Fire Type)", primaryTypeOverride: "fire", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-fire.png" },
+        { pokemonName: "acreus", label: "Arceus (Flying Type)", primaryTypeOverride: "flying", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-flying.png" },
+        { pokemonName: "acreus", label: "Arceus (Ghost Type)", primaryTypeOverride: "ghost", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-ghost.png" },
+        { pokemonName: "acreus", label: "Arceus (Grass Type)", primaryTypeOverride: "grass", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-grass.png" },
+        { pokemonName: "acreus", label: "Arceus (Ground Type)", primaryTypeOverride: "ground", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-ground.png" },
+        { pokemonName: "acreus", label: "Arceus (Ice Type)", primaryTypeOverride: "ice", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-ice.png" },
+        { pokemonName: "acreus", label: "Arceus (Poison Type)", primaryTypeOverride: "poison", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-poison.png" },
+        { pokemonName: "acreus", label: "Arceus (Psychic Type)", primaryTypeOverride: "psychic", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-psychic.png" },
+        { pokemonName: "acreus", label: "Arceus (Rock Type)", primaryTypeOverride: "rock", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-rock.png" },
+        { pokemonName: "acreus", label: "Arceus (Steel Type)", primaryTypeOverride: "steel", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-steel.png" },
+        { pokemonName: "acreus", label: "Arceus (Water Type)", primaryTypeOverride: "water", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-water.png" },
+        { pokemonName: "acreus", label: "Arceus (Fairy Type)", primaryTypeOverride: "fairy", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/493-fairy.png" }
+      ],
+      500: [
+        { pokemonName: "emboar-mega", label: "Mega Emboar", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/500-mega.png" }
+      ],
+      503: [
+        { pokemonName: "samurott-hisui", label: "Hisuian Samurott", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/503-regional-h.png" }
+      ],
+      530: [
+        { pokemonName: "excadrill-mega", label: "Mega Excadrill", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/530-mega.png" }
+      ],
+      531: [
+        { pokemonName: "audino-mega", label: "Mega Audino", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/531-mega.png" }
+      ],
+      545: [
+        { pokemonName: "scolipede-mega", label: "Mega Scolipede", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/545-mega.png" }
+      ],
+      549: [
+        { pokemonName: "lilligant-hisui", label: "Hisuian Lilligant", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/549-regional-h.png" }
+      ],
+      550: [
+        { pokemonName: "basculin-blue-striped", label: "Blue Striped Basculin", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/550-blue-striped.png" },
+        { pokemonName: "basculin-white-striped", label: "White Striped Basculin", formKind: "regional", regionOverride: "hisui", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/550-white-striped.png" }
+      ],
+      554: [
+        { pokemonName: "darumaka-galar", label: "Galarian Darumaka", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/554-regional-g.png" }
+      ],
+      555: [
+        { pokemonName: "Darmanitan-zen", label: "Darmanitan (Zen Mode)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/555-zen.png" },
+        { pokemonName: "Darmanitan-galar-standard", label: "Galarian Darmanitan (Standard Mode)", formKind: "regional", regionOverride: "galar", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/555-regional-g-standard.png" },
+        { pokemonName: "Darmanitan-galar-zen", label: "Galarian Darmanitan (Zen Mode)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/555-regional-g-zen.png" }
+      ],
+      560: [
+        { pokemonName: "scrafty-mega", label: "Mega Scrafty", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/560-mega.png" }
+      ],
+      562: [
+        { pokemonName: "yamask-galar", label: "Galarian Yamask", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/562-regional-g.png" }
+      ],
+      569: [
+        { pokemonName: "garbodor-gmax", label: "G-Max Garbodor", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/569-gmax.png" }
+      ],
+      570: [
+        { pokemonName: "Zorua-hisui", label: "Hisuian Zorua", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/570-regional-h.png" }
+      ],
+      571: [
+        { pokemonName: "Zoroark-hisui", label: "Hisuian Zororak", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/571-regional-h.png" }
+      ],
+      585: [
+        { pokemonName: "deerling", label: "Summer Deerling", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/585-summer.png" },
+        { pokemonName: "deerling", label: "Autumn Deerling", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/585-autumn.png" },
+        { pokemonName: "deerling", label: "Winter Deerling", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/585-winter.png" }
+      ],
+      586: [
+        { pokemonName: "sawsbuck", label: "Summer Sawsbuck", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/586-summer.png" },
+        { pokemonName: "sawsbuck", label: "Autumn Sawsbuck", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/586-autumn.png" },
+        { pokemonName: "sawsbuck", label: "Winter Sawsbuck", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/586-winter.png" }
+      ],
+      604: [
+        { pokemonName: "eelektross-mega", label: "Mega Eelektross", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/604-mega.png" }
+      ],
+      609: [
+        { pokemonName: "chandelure-mega", label: "Mega Chandelure", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/609-mega.png" }
+      ],
+      618: [
+        { pokemonName: "stunfisk-galar", label: "Galarian Stunfisk", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/618-regional-g.png" }
+      ],
+      628: [
+        { pokemonName: "braviary-hisui", label: "Hisuian Braviary", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/628-regional-h.png" }
+      ],
+      641: [
+        { pokemonName: "tornadus-therian", label: "Tornadus (Therian Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/641-therian.png" }
+      ],
+      642: [
+        { pokemonName: "thundurus-therian", label: "Thundurus (Therian Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/642-therian.png" }
+      ],
+      645: [
+        { pokemonName: "landorus-therian", label: "Landorus (Therian Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/645-therian.png" }
+      ],
+      647: [
+        { pokemonName: "keldeo-resolute", label: "Keldeo (Resolute Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/647-resolute.png" }
+      ],
+      648: [
+        { pokemonName: "meloetta-pirouette", label: "Meloetta (Pirouette Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/648-pirouette.png" }
+      ],
+      649: [
+        { primaryTypeOverride: "bug", secondaryTypeOverride: "steel", label: "Genesect (Douse Drive)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/649-douse.png" },
+        { primaryTypeOverride: "bug", secondaryTypeOverride: "steel", label: "Genesect (Shock Drive)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/649-shock.png" },
+        { primaryTypeOverride: "bug", secondaryTypeOverride: "steel", label: "Genesect (Burn Drive)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/649-burn.png" },
+        { primaryTypeOverride: "bug", secondaryTypeOverride: "steel", label: "Genesect (Chill Drive)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/649-chill.png" },
+      ],
+      652: [
+        { pokemonName: "chesnaught-mega", label: "Mega Chesnaught", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/652-mega.png" }
+      ],
+      655: [
+        { pokemonName: "delphox-mega", label: "Mega Delphox", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/655-mega.png" }
+      ],
+      658: [
+        { pokemonName: "greninja-ash", label: "Ash Greninja", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/658-ash.png" },
+        { pokemonName: "greninja-mega", label: "Mega Greninja", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/658-mega.png" }
+      ],
+      666: [
+        { pokemonName: "vivillon", label: "Vivillon (Icy Snow Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-icy-snow.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Polar Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-polar.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Tundra Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-tundra.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Continental Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-continental.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Garden Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-garden.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Elegant Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-elegant.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Modern Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-modern.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Marine Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-marine.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Archipelago Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-archipelago.png" },
+        { pokemonName: "vivillon", label: "Vivillon (High Plains Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-high-plains.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Sandstorm Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-sandstorm.png" },
+        { pokemonName: "vivillon", label: "Vivillon (River Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-river.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Monsoon Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-monsoon.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Savanna Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-savanna.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Sun Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-sun.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Ocean Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-ocean.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Jungle Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-jungle.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Fancy Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-fancy.png" },
+        { pokemonName: "vivillon", label: "Vivillon (Pokéball Pattern)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-poke-ball.png" }
+      ],
+      668: [
+        {pokemonName: "pyroar-mega", label: "Mega Pyroar", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/668-mega.png" }
+      ],
+      669: [
+        { pokemonName: "flabebe", label: "Flabébé (Yellow Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/669-yellow.png" },
+        { pokemonName: "flabebe", label: "Flabébé (Orange Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/669-orange.png" },
+        { pokemonName: "flabebe", label: "Flabébé (Blue Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/669-blue.png" },
+        { pokemonName: "flabebe", label: "Flabébé (White Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/669-white.png" }
+      ],
+      670: [
+        { pokemonName: "floette", label: "Floette (Yellow Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/670-yellow.png" },
+        { pokemonName: "floette", label: "Floette (Orange Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/670-orange.png" },
+        { pokemonName: "floette", label: "Floette (Blue Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/670-blue.png" },
+        { pokemonName: "floette", label: "Floette (White Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/670-white.png" },
+        { pokemonName: "floette", label: "Floette (Eternal Flower)", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/670-eternal.png" },
+        { pokemonName: "floette", label: "Mega Floette (Eternal Flower)", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/670-mega.png" }
+      ],
+      671: [
+        { pokemonName: "florges", label: "Florges (Yellow Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/671-yellow.png" },
+        { pokemonName: "florges", label: "Florges (Orange Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/671-orange.png" },
+        { pokemonName: "florges", label: "Florges (Blue Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/671-blue.png" },
+        { pokemonName: "florges", label: "Florges (White Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/671-white.png" }
+      ],
+      676: [
+        { pokemonName: "furfrou", label: "Furfrou (Heart Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-heart.png" },
+        { pokemonName: "furfrou", label: "Furfrou (Star Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-star.png" },
+        { pokemonName: "furfrou", label: "Furfrou (Diamond Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-diamond.png" },
+        { pokemonName: "furfrou", label: "Furfrou (Debutante Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-debutante.png" },
+        { pokemonName: "furfrou", label: "Furfrou (Matron Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-matron.png" },
+        { pokemonName: "furfrou", label: "Furfrou (Dandy Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-dandy.png" },
+        { pokemonName: "furfrou", label: "Furfrou (La Reine Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-la-reine.png" },
+        { pokemonName: "furfrou", label: "Furfrou (Kabuki Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-kabuki.png" },
+        { pokemonName: "furfrou", label: "Furfrou (Pharaoh Trim)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-pharaoh.png" },
+      ],
+      678: [
+        {pokemonName: "meowstic-female", label: "Meowstic (Female)", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/678-female.png"}
+      ],
+      681: [
+        {pokemonName: "aegislash-blade", label: "Aegislash (Blade)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/681-blade.png"}
+      ],
+      687: [
+        { pokemonName: "malamar-mega", label: "Mega Malamar", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/687-mega.png" }
+      ],
+      689: [
+        { pokemonName: "barbaracle-mega", label: "Mega Barbaracle", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/689-mega.png" }
+      ],
+      691: [
+        { pokemonName: "dragalge-mega", label: "Mega Dragalge", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/691-mega.png" }
+      ],
+      701: [
+        { pokemonName: "hawlucha-mega", label: "Mega Hawlucha", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/701-mega.png" }
+      ],
+      705: [
+        { pokemonName: "sliggoo-hisui", label: "Hisuian Sliggoo", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/705-regional-h.png" }
+      ],
+      706: [
+        { pokemonName: "goodra-hisui", label: "Hisuian Goodra", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/706-regional-h.png" }
+      ],
+      710: [
+        { pokemonName: "pumpkaboo-average", label: "Pumpkaboo (Average Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-average.png" },
+        { pokemonName: "pumpkaboo-large", label: "Pumpkaboo (Large Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-large.png" },
+        { pokemonName: "pumpkaboo-super", label: "Pumpkaboo (Super Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-super.png" }
+      ],
+      711: [
+        { pokemonName: "gourgeist-average", label: "Gourgeist (Average Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-average.png" },
+        { pokemonName: "gourgeist-large", label: "Gourgeist (Large Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-large.png" },
+        { pokemonName: "gourgeist-super", label: "Gourgeist (Super Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-super.png" }
+      ],
+      713: [
+        { pokemonName: "avalugg-hisui", label: "Hisuian Avalugg", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/713-regional-h.png" }
+      ],
+      718: [
+        { pokemonName: "zygarde-50", label: "Zygarde (50% Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/718-50.png" },
+        { pokemonName: "zygarde-complete", label: "Zygarde (Complete Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/718-complete.png" },
+        { pokemonName: "zygarde-mega", label: "Mega Zygarde (Complete Forme)", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/718-mega.png" }
+      ],
+      719: [
+        { pokemonName: "diancie-mega", label: "Mega Diance", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/719-mega.png" }
+      ],
+      720: [
+        { pokemonName: "hoopa-unbound", label: "Hoopa Unbound", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/720-unbound.png" }
+      ],
+      724: [
+        { pokemonName: "decidueye-hisui", label: "Hisuian Decidueye", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/724-regional-h.png" }
+      ],
+      741: [
+        { pokemonName: "oricorio-pom-pom", label: "Oricorio (Pom-Pom Style)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/741-pom-pom.png" },
+        { pokemonName: "oricorio-pau", label: "Oricorio (Pau Style)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/741-pau.png" },
+        { pokemonName: "oricorio-sensu", label: "Oricorio (Sensu Style)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/741-sensu.png" }
+      ],
+      745: [
+        { pokemonName: "lycanroc-dusk", label: "Lycanroc (Dusk Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/745-dusk.png" },
+        { pokemonName: "lycanroc-midnight", label: "Lycanroc (Midnight Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/745-midnight.png" }
+      ],
+      746: [
+        { pokemonName: "wishiwashi-school", label: "Wishiwashi (School Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/746-school.png" }
+      ],
+      773: [
+        { pokemonName: "silvally-bug", label: "Sillvay (Bug Type)", primaryTypeOverride: "bug", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-bug.png" },
+        { pokemonName: "silvally-dark", label: "Sillvay (Dark Type)", primaryTypeOverride: "dark", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-dark.png" },
+        { pokemonName: "silvally-dragon", label: "Sillvay (Dragon Type)", primaryTypeOverride: "dragon", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-dragon.png" },
+        { pokemonName: "silvally-electric", label: "Sillvay (Electric Type)", primaryTypeOverride: "electric", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-electric.png" },
+        { pokemonName: "silvally-fighting", label: "Sillvay (Fighting Type)", primaryTypeOverride: "fighting", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-fighting.png" },
+        { pokemonName: "silvally-fire", label: "Sillvay (Fire Type)", primaryTypeOverride: "fire", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-fire.png" },
+        { pokemonName: "silvally-flying", label: "Sillvay (Flying Type)", primaryTypeOverride: "flying", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-flying.png" },
+        { pokemonName: "silvally-ghost", label: "Sillvay (Ghost Type)", primaryTypeOverride: "ghost", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-ghost.png" },
+        { pokemonName: "silvally-grass", label: "Sillvay (Grass Type)", primaryTypeOverride: "grass", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-grass.png" },
+        { pokemonName: "silvally-ground", label: "Sillvay (Ground Type)", primaryTypeOverride: "ground", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-ground.png" },
+        { pokemonName: "silvally-ice", label: "Sillvay (Ice Type)", primaryTypeOverride: "ice", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-ice.png" },
+        { pokemonName: "silvally-poison", label: "Sillvay (Poison Type)", primaryTypeOverride: "poison", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-poison.png" },
+        { pokemonName: "silvally-psychic", label: "Sillvay (Psychic Type)", primaryTypeOverride: "psychic", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-psychic.png" },
+        { pokemonName: "silvally-rock", label: "Sillvay (Rock Type)", primaryTypeOverride: "rock", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-rock.png" },
+        { pokemonName: "silvally-steel", label: "Sillvay (Steel Type)", primaryTypeOverride: "steel", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-steel.png" },
+        { pokemonName: "silvally-water", label: "Sillvay (Water Type)", primaryTypeOverride: "water", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-water.png" },
+        { pokemonName: "silvally-fairy", label: "Sillvay (Fairy Type)", primaryTypeOverride: "fairy", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-fairy.png" },
+      ],
+      774: [
+        { pokemonName: "minior-red-meteor", label: "Minior (Red Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-red.png" },
+        { pokemonName: "minior-orange-meteor", label: "Minior (Orange Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-orange.png" },
+        { pokemonName: "minior-yellow-meteor", label: "Minior (Yellow Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-yellow.png" },
+        { pokemonName: "minior-green-meteor", label: "Minior (Green Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-green.png" },
+        { pokemonName: "minior-blue-meteor", label: "Minior (Blue Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-blue.png" },
+        { pokemonName: "minior-indigo-meteor", label: "Minior (Indigo Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-indigo.png" },
+        { pokemonName: "minior-violet-meteor", label: "Minior (Violet Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-violet.png" },
+      ],
+      778: [
+        { pokemonName: "mimikyu-busted", label: "Mimikyu (Busted Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/778-busted.png" }
+      ],
+      780: [
+        { pokemonName: "drampa-mega", label: "Mega Drampa", formkind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/780-mega.png" }
+      ],
+      800: [
+        { pokemonName: "necrozma-dusk", label: "Dusk Mane Necroma", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/800-dusk.png" },
+        { pokemonName: "necrozma-dawn", label: "Dawn Wings Necroma", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/800-dawn.png" },
+        { pokemonName: "necrozma-ultra", label: "Ultra Necroma", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/800-ultra.png" }
+      ],
+      801: [
+        { pokemonName: "magearna-original", label: "Magearna (Original Color)", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/801-original.png" }
+      ],
+      809: [
+        { pokemonName: "melmetal-gmax", label: "G-Max Melmetal", formkind: "gmax", spriteOverride: "https://s3.pokeos.com-uploads/assets/pokemon/fallback/809-gmax.png" }
+      ],
+      812: [
+        { pokemonName: "rillaboom-gmax", label: "G-Max Rillaboom", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/812-gmax.png" }
+      ],
+      815: [
+        { pokemonName: "cinderace-gmax", label: "G-Max Cinderace", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/815-gmax.png" }
+      ],
+      818: [
+        { pokemonName: "inteleon-gmax", label: "G-Max Inteleon", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/818-gmax.png" }
+      ],
+      823: [
+        { pokemonName: "corviknight-gmax", label: "G-Max Corviknight", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/823-gmax.png" }
+      ],
+      826: [
+        { pokemonName: "orbeetle-gmax", label: "G-Max Orbeetle", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/826-gmax.png" }
+      ],
+      834: [
+        { pokemonName: "drednaw-gmax", label: "G-Max Drednaw", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/834-gmax.png" }
+      ],
+      839: [
+        { pokemonName: "coalossal-gmax", label: "G-Max Coalossal", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/839-gmax.png" }
+      ],
+      841: [
+        { pokemonName: "flapple-gmax", label: "G-Max Flapple", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/841-gmax.png" }
+      ],
+      842: [
+        { pokemonName: "appletun-gmax", label: "G-Max Appletun", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/841-gmax.png" }
+      ],
+      844: [
+        { pokemonName: "sandaconda-gmax", label: "G-Max Sandaconda", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/844-gmax.png" }
+      ],
+      849: [
+        { pokemonName: "toxtricity-amped", label: "Toxtricity (Amped Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/849-amped.png" },
+        { pokemonName: "toxtricity-amped-gmax", label: "G-Max Toxtricity", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/849-gmax.png" }
+      ],
+      851: [
+        { pokemonName: "centiskorch-gmax", label: "G-Max Centiskorch", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/851-gmax.png" }
+      ],
+      858: [
+        { pokemonName: "hatterene-gmax", label: "G-Max Hatterene", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/858-gmax.png" }
+      ],
+      861: [
+        { pokemonName: "grimmsnarl-gmax", label: "G-Max Grimmsnarl", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/861-gmax.png" }
+      ],
+      869: [
+        { pokemonName: "alcremie", label: "Alcremie (Vanilla Cream/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-vanilla-cream-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Vanilla Cream/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-vanilla-cream-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Vanilla Cream/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-vanilla-cream-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Vanilla Cream/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-vanilla-cream-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Vanilla Cream/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-vanilla-cream-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Vanilla Cream/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-vanilla-cream-love-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Cream/Strawberry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-cream-strawberry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Cream/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-cream-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Cream/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-cream-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Cream/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-cream-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Cream/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-cream-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Cream/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-cream-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Cream/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-cream-love-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Matcha Cream/Strawberry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-matcha-cream-strawberry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Matcha Cream/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-matcha-cream-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Matcha Cream/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-matcha-cream-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Matcha Cream/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-matcha-cream-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Matcha Cream/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-matcha-cream-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Matcha Cream/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-matcha-cream-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Matcha Cream/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-matcha-cream-love-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Salted Cream/Strawberry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-salted-cream-strawberry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Salted Cream/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-salted-cream-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Salted Cream/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-salted-cream-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Salted Cream/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-salted-cream-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Salted Cream/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-salted-cream-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Salted Cream/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-salted-cream-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Salted Cream/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-salted-cream-love-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Lemon Cream/Strawberry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-lemon-cream-strawberry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Lemon Cream/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-lemon-cream-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Lemon Cream/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-lemon-cream-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Lemon Cream/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-lemon-cream-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Lemon Cream/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-lemon-cream-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Lemon Cream/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-lemon-cream-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Lemon Cream/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-lemon-cream-love-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Mint Cream/Strawberry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-mint-cream-strawberry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Mint Cream/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-mint-cream-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Mint Cream/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-mint-cream-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Mint Cream/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-mint-cream-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Mint Cream/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-mint-cream-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Mint Cream/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-mint-cream-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Mint Cream/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-mint-cream-love-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Caramel Swirl/Strawberry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-caramel-swirl-strawberry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Caramel Swirl/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-caramel-swirl-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Caramel Swirl/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-caramel-swirl-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Caramel Swirl/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-caramel-swirl-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Caramel Swirl/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-caramel-swirl-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Caramel Swirl/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-caramel-swirl-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Caramel Swirl/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-caramel-swirl-love-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Swirl/Strawberry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-swirl-strawberry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Swirl/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-swirl-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Swirl/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-swirl-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Swirl/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-swirl-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Swirl/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-swirl-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Swirl/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-swirl-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Ruby Swirl/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-ruby-swirl-love-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Rainbow Swirl/Strawberry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-rainbow-swirl-strawberry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Rainbow Swirl/Flower)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-rainbow-swirl-flower-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Rainbow Swirl/Star)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-rainbow-swirl-star-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Rainbow Swirl/Clover)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-rainbow-swirl-clover-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Rainbow Swirl/Berry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-rainbow-swirl-berry-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Rainbow Swirl/Ribbon)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-rainbow-swirl-ribbon-sweet.png" },
+        { pokemonName: "alcremie", label: "Alcremie (Rainbow Swirl/Love)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-rainbow-swirl-love-sweet.png" },
+        { pokemonName: "alcremie-gmax", label: "G-Max Alcremie", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-gmax.png" }
+      ],
+      870: [
+        { pokemonName: "falinks-mega", label: "Mega Falinks", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/870-mega.png" }
+      ],
+      875: [
+        { pokemonName: "eiscue-noice", label: "Eiscue (Noice Face)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/875-noice.png" }
+      ],
+      876: [
+        { pokemonName: "indeedee-female", label: "Indeedee (Female)", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/876-female.png" }
+      ],
+      877: [
+        { pokemonName: "morpeko-hangry", label: "Morpeko (Hangry)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/877-hangry.png" }
+      ],
+      879: [
+        { pokemonName: "copperajah-gmax", label: "G-Max Copperajah", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/879-gmax.png" }
+      ],
+      884: [
+        { pokemonName: "duraludon-gmax", label: "G-Max Duraludon", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/884-gmax.png" }
+      ],
+      888: [
+        { pokemonName: "zacian-crowned", label: "Crowned Sword Zacian", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/888-crowned.png" }
+      ],
+      889: [
+        { pokemonName: "zamazenta-crowned", label: "Crowned Shield Zamazenta", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/889-crowned.png" }
+      ],
+      890: [
+        { pokemonName: "eternatus-eternamax", label: "Eternamax Eternatus", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/890-eternamax.png" }
+      ],
+      892: [
+        { pokemonName: "urshifu-single-strike-gmax", label: "G-Max Single Strike Urshifu", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/892-single-strike-gmax.png" },
+        { pokemonName: "urshifu-rapid-strike", label: "Rapid Strike Urshifu", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/892-rapid-strike.png" },
+        { pokemonName: "urshifu-rapid-strike-gmax", label: "G-Max Rapid Strike Urshifu", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/892-rapid-strike-gmax.png" }
+      ],
+      893: [
+        { pokemonName: "zarude-dada", label: "Dada Zarude", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/893-dada.png" }
+      ],
+      898: [
+        { pokemonName: "calyrex-ice", label: "Ice Rider Calyrex", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/898-ice.png" },
+        { pokemonName: "calyrex-shadow", label: "Shadow Rider Calyrex", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/898-shadow.png" }
+      ],
+      901: [
+        { pokemonName: "ursaluna-bloodmoon", label: "Bloodmoon Ursaluna", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/901-bloodmoon.png" }
+      ],
+      902: [
+        { pokemonName: "basculegion-female", label: "Basculegion (Female)", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/902-female.png" }
+      ],
+      905: [
+        { pokemonName: "enamorus-therian", label: "Enamorus (Therian Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/905-therian.png" }
+      ],
+      916: [
+        { pokemonName: "oinkologne-female", label: "Oinkologne (Female)", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/916-female.png" }
+      ],
+      925: [
+        { pokemonName: "maushold-family-of-four", label: "Maushold (Family of Four)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/925-family-of-four.png" }
+      ],
+      931: [
+        { pokemonName: "squawkabilly-blue-plumage", label: "Squawkabilly (Blue Plumage)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/931-blue.png" },
+        { pokemonName: "squawkabilly-yellow-plumage", label: "Squawkabilly (Yellow Plumage)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/931-yellow.png" },
+        { pokemonName: "squawkabilly-white-plumage", label: "Squawkabilly (White Plumage)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/931-white.png" }
+      ],
+      964: [
+        { pokemonName: "palafin-hero", label: "Palafin (Hero Form)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/964-hero.png" }
+      ],
+      978: [
+        { pokemonName: "tatsugiri-droopy", label: "Tatsugiri (Droopy Form)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/978-droopy.png" },
+        { pokemonName: "tatsugiri-stretchy", label: "Tatsugiri (Stretchy Form)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/978-stretchy.png" }
+      ],
+      982: [
+        { pokemonName: "dudunsparce-three-segment", label: "Dudunsparce (Three Segment)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/982-three-segment.png" }
+      ],
+      999: [
+        { pokemonName: "gimmighoul-roaming", label: "Gimmighoul (Roaming Form)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/999-roaming.png" }
+      ],
+      1017: [
+        { pokemonName: "ogerpon", label: "Ogerpon (Terastal Teal Mask)", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/1017-teal-mask-tera.png" },
+        { pokemonName: "ogerpon-wellspring-mask", label: "Ogerpon (Wellspring Mask)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/1017-wellspring-mask.png" },
+        { pokemonName: "ogerpon-wellspring-mask", label: "Ogerpon (Terastal Wellspring Mask)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/1017-wellspring-mask-tera.png" },
+        { pokemonName: "ogerpon-hearthflame-mask", label: "Ogerpon (Hearthflame Mask)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/1017-hearthflame-mask.png" },
+        { pokemonName: "ogerpon-hearthflame-mask", label: "Ogerpon (Terastal Hearthflame Mask)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/1017-hearthflame-mask-tera.png" },
+        { pokemonName: "ogerpon-cornerstone-mask", label: "Ogerpon (Cornerstone Mask)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/1017-cornerstone-mask.png" },
+        { pokemonName: "ogerpon-cornerstone-mask", label: "Ogerpon (Terastal Cornerstone Mask)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/1017-cornerstone-mask-tera.png" }
+      ],
+      1024: [
+        { pokemonName: "terapagos-tera", label: "Terapagos (Terastal Form)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/1024-tera.png" },
+        { pokemonName: "terapagos-stellar", label: "Terapagos (Stellar Form)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/1024-stellar.png" }
+      ]
+    };
+
+    const STORAGE_KEY = "favoritePokemonSorter_v2";
+
+    // Type colors
+    const TYPE_COLORS = {
+      normal: "#A8A77A",
+      fire: "#EE8130",
+      water: "#6390F0",
+      electric: "#F7D02C",
+      grass: "#7AC74C",
+      ice: "#96D9D6",
+      fighting: "#C22E28",
+      poison: "#A33EA1",
+      ground: "#E2BF65",
+      flying: "#A98FF3",
+      psychic: "#F95587",
+      bug: "#A6B91A",
+      rock: "#B6A136",
+      ghost: "#735797",
+      dragon: "#6F35FC",
+      dark: "#705746",
+      steel: "#B7B7CE",
+      fairy: "#D685AD"
+    };
+
+    // --- STATE ---
+
+    // Each entry = { dexId, pokemonName, displayName?, isForm, formKind? }
+    let allEntries = [];
+
+    let ranking = [];              // array of indices into allEntries
+    let currentInsertIndex = null; // index into allEntries
+    let compareRankPos = null;     // index into ranking
+    let mode = "idle";             // "idle" | "initial" | "inserting" | "done"
+
+    // pokemonName -> { sprite, primaryType, secondaryType }
+    const pokemonInfoCache = {};
+
+    // --- UI ELEMENTS ---
+
+    const statusMain = document.getElementById("status-main");
+    const statusProgress = document.getElementById("status-progress");
+    const startBtn = document.getElementById("start-btn");
+    const skipBtn = document.getElementById("skip-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const compareTitle = document.getElementById("compare-title");
+
+    const nameLeft = document.getElementById("name-left");
+    const idLeft = document.getElementById("id-left");
+    const imgLeft = document.getElementById("img-left");
+    const imgPlaceholderLeft = document.getElementById("img-placeholder-left");
+    const btnLeft = document.getElementById("btn-left");
+
+    const nameRight = document.getElementById("name-right");
+    const idRight = document.getElementById("id-right");
+    const imgRight = document.getElementById("img-right");
+    const imgPlaceholderRight = document.getElementById("img-placeholder-right");
+    const btnRight = document.getElementById("btn-right");
+
+    const rankingUl = document.getElementById("ranking-ul");
+    const favoriteLine = document.getElementById("favorite-line");
+    const logBox = document.getElementById("log-box");
+
+    const fullRankingGrid = document.getElementById("full-ranking-grid");
+
+    // --- HELPERS ---
+
+    function niceName(raw) {
+      let name = raw.replace(/-/g, " ");
+      if (raw === "nidoran-f") name = "nidoran♀";
+      if (raw === "nidoran-m") name = "nidoran♂";
+      return name;
+    }
+
+    function fullDisplayName(entry) {
+      if (entry.displayName) return entry.displayName;
+      return niceName(entry.pokemonName);
+    }
+
+    function log(message) {
+      const p = document.createElement("p");
+      p.textContent = message;
+      logBox.appendChild(p);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    async function getPokemonInfo(pokemonName, overrideSpriteUrl = null) {
+      const cached = pokemonInfoCache[pokemonName];
+      if (cached) {
+        // If a sprite override is requested, return a copy with that sprite
+        if (overrideSpriteUrl) {
+          return { ...cached, sprite: overrideSpriteUrl };
+        }
+        return cached;
+      }
+
+      let sprite = null;
+      let primaryType = "normal";
+      let secondaryType = null;
+
+      try {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+        if (!res.ok) throw new Error("Not found");
+
+        const data = await res.json();
+
+        const id = data.id;
+        const pokeosSprite =
+          `https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/${id}.png`;
+
+        sprite = overrideSpriteUrl || pokeosSprite;
+
+        primaryType = data.types[0].type.name;
+        secondaryType = data.types[1]?.type.name || null;
+      } catch (err) {
+        console.error("Error loading:", pokemonName, err);
+        sprite = overrideSpriteUrl || "";
+      }
+
+      const info = { sprite, primaryType, secondaryType };
+      pokemonInfoCache[pokemonName] = info;
+      return info;
+    }
+
+
+
+    function updateRankingUI() {
+      // Side panel top-15
+      rankingUl.innerHTML = "";
+
+      if (ranking.length === 0) {
+        const li = document.createElement("li");
+        const spanNum = document.createElement("span");
+        spanNum.className = "rank-num";
+        spanNum.textContent = "–";
+        const spanName = document.createElement("span");
+        spanName.className = "rank-name";
+        spanName.textContent = "No Pokémon ranked yet.";
+        li.appendChild(spanNum);
+        li.appendChild(spanName);
+        rankingUl.appendChild(li);
+
+        favoriteLine.textContent = "";
+
+        // Full grid placeholder
+        fullRankingGrid.innerHTML = "";
+        const emptyDiv = document.createElement("div");
+        emptyDiv.className = "full-ranking-empty";
+        emptyDiv.textContent = "No Pokémon ranked yet.";
+        fullRankingGrid.appendChild(emptyDiv);
+        return;
+      }
+
+      const topDisplay = ranking.slice(0, 15);
+      topDisplay.forEach((entryIndex, i) => {
+        const entry = allEntries[entryIndex];
+        const li = document.createElement("li");
+
+        const spanNum = document.createElement("span");
+        spanNum.className = "rank-num";
+        spanNum.textContent = "#" + (i + 1);
+
+        const spanName = document.createElement("span");
+        spanName.className = "rank-name";
+        spanName.textContent = fullDisplayName(entry);
+
+        const spanId = document.createElement("span");
+        spanId.className = "rank-id";
+        spanId.textContent = "No." + entry.dexId;
+
+        li.appendChild(spanNum);
+        li.appendChild(spanName);
+        li.appendChild(spanId);
+        rankingUl.appendChild(li);
+      });
+
+      const top = allEntries[ranking[0]];
+      favoriteLine.textContent =
+        "Current #1: " + fullDisplayName(top) + " (No." + top.dexId + ")";
+
+      // Full Poké Ball grid
+      fullRankingGrid.innerHTML = "";
+      ranking.forEach((entryIndex, i) => {
+        const entry = allEntries[entryIndex];
+
+        const tile = document.createElement("div");
+        tile.className = "ball-tile";
+        tile.title =
+          "#" +
+          (i + 1) +
+          " – " +
+          fullDisplayName(entry) +
+          " (No." +
+          entry.dexId +
+          ")";
+
+        const shell = document.createElement("div");
+        shell.className = "ball-shell";
+
+        // Form rings: mega / gmax / regional
+        let ringKind = entry.formKind || null;
+        if (!ringKind && entry.isForm) {
+          if (/alola|galar|hisui|paldea/i.test(entry.pokemonName)) {
+            ringKind = "regional";
+            
+          }
+        }
+        if (ringKind === "mega") {
+          shell.classList.add("mega-ring");
+        } else if (ringKind === "gmax") {
+          shell.classList.add("gmax-ring");
+        } else if (ringKind === "regional") {
+            shell.classList.add("regional-ring");  // keep the purple outer ring
+            const badge = document.createElement("div");
+            badge.className = "form-badge regional-badge";
+
+            let iconUrl = null;
+
+            // 1️⃣ Region override always wins
+            if (entry.regionOverride) {
+              switch (entry.regionOverride.toLowerCase()) {
+                case "alola": iconUrl = ALOLA_ICON_URL; break;
+                case "galar": iconUrl = GALAR_ICON_URL; break;
+                case "hisui": iconUrl = HISUI_ICON_URL; break;
+                case "paldea": iconUrl = PALDEA_ICON_URL; break;
+              }
+            }
+
+            // 2️⃣ Otherwise detect from the name
+            if (!iconUrl) {
+              if (/alola/i.test(entry.pokemonName)) iconUrl = ALOLA_ICON_URL;
+              else if (/galar/i.test(entry.pokemonName)) iconUrl = GALAR_ICON_URL;
+              else if (/hisui/i.test(entry.pokemonName)) iconUrl = HISUI_ICON_URL;
+              else if (/paldea/i.test(entry.pokemonName)) iconUrl = PALDEA_ICON_URL;
+            }
+
+
+            if (iconUrl) {
+                const icon = document.createElement("img");
+                icon.className = "form-badge-icon";
+                icon.src = iconUrl;
+                badge.appendChild(icon);
+            } else {
+                badge.textContent = "R"; // fallback text
+            }
+
+            shell.appendChild(badge);
+        }else if (ringKind === "variant") {
+          shell.classList.add("variant-ring");
+        }else if (ringKind === "special") {
+          shell.classList.add("special-ring");
+        }
+
+        const center = document.createElement("div");
+        center.className = "ball-center";
+        shell.appendChild(center);
+
+        const img = document.createElement("img");
+        img.className = "ball-sprite";
+        img.style.display = "none";
+        shell.appendChild(img);
+
+        // Form badges (bottom-right) using images if provided, otherwise letters
+        if (ringKind === "mega") {
+          const badge = document.createElement("div");
+          badge.className = "form-badge mega-badge";
+          if (MEGA_ICON_URL) {
+            const icon = document.createElement("img");
+            icon.className = "form-badge-icon";
+            icon.src = MEGA_ICON_URL;
+            icon.alt = "Mega form";
+            badge.appendChild(icon);
+          } else {
+            badge.textContent = "M";
+          }
+          shell.appendChild(badge);
+        } else if (ringKind === "gmax") {
+          const badge = document.createElement("div");
+          badge.className = "form-badge gmax-badge";
+          if (GMAX_ICON_URL) {
+            const icon = document.createElement("img");
+            icon.className = "form-badge-icon";
+            icon.src = GMAX_ICON_URL;
+            icon.alt = "G-Max form";
+            badge.appendChild(icon);
+          } else {
+            badge.textContent = "Gx";
+          }
+          shell.appendChild(badge);
+        }
+
+        // Fetch type + sprite info and color the ball
+        getPokemonInfo(entry.pokemonName).then((info) => {
+            // Prefer manual overrides if present
+            const primaryType =
+                entry.primaryTypeOverride || info.primaryType;
+            const secondaryType =
+                entry.secondaryTypeOverride !== undefined
+                ? entry.secondaryTypeOverride
+                : info.secondaryType;
+
+            const primaryColor =
+                TYPE_COLORS[primaryType] || "#ef4444";
+            const secondaryColor =
+                TYPE_COLORS[secondaryType] || primaryColor;
+
+
+          shell.style.background =
+            "linear-gradient(to bottom," +
+            primaryColor +
+            " 0%," +
+            primaryColor +
+            " 48%,#111827 48%,#111827 52%," +
+            secondaryColor +
+            " 52%," +
+            secondaryColor +
+            " 100%)";
+
+            const spriteUrl = entry.spriteOverride || info.sprite;
+
+            if (spriteUrl) {
+                img.src = spriteUrl;
+                img.style.display = "block";
+            } else {
+                img.style.display = "none";
+            }
+        });
+
+        const rankLabel = document.createElement("div");
+        rankLabel.className = "ball-rank";
+        rankLabel.textContent = "#" + (i + 1);
+
+        tile.appendChild(shell);
+        tile.appendChild(rankLabel);
+        fullRankingGrid.appendChild(tile);
+      });
+    }
+
+    function saveState() {
+      const data = {
+        ranking,
+        currentInsertIndex,
+        compareRankPos,
+        mode
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (err) {
+        console.error("Error saving state:", err);
+      }
+    }
+
+    function clearState() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (err) {
+        console.error("Error clearing state:", err);
+      }
+    }
+
+    async function fetchSpeciesListAndBuildEntries() {
+      statusMain.textContent = "Loading Pokédex species from PokéAPI…";
+      statusProgress.textContent = "";
+
+      const url = "https://pokeapi.co/api/v2/pokemon-species?limit=10000&offset=0";
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        const speciesOnly = data.results
+          .map((item) => {
+            const match = item.url.match(/\/pokemon-species\/(\d+)\//);
+            const id = match ? parseInt(match[1], 10) : null;
+            return id ? { dexId: id, speciesName: item.name } : null;
+          })
+          .filter(Boolean)
+          .filter((s) => s.dexId <= MAX_SPECIES_DEX_ID)
+          .sort((a, b) => a.dexId - b.dexId);
+
+        allEntries = [];
+        for (const s of speciesOnly) {
+          allEntries.push({
+            dexId: s.dexId,
+            pokemonName: s.speciesName,
+            displayName: null,
+            isForm: false,
+            formKind: null
+          });
+
+          const extras = EXTRA_FORMS_CONFIG[s.dexId] || [];
+          for (const f of extras) {
+            allEntries.push({
+              dexId: s.dexId,
+              pokemonName: f.pokemonName,
+              displayName: f.label,
+              isForm: true,
+              formKind: f.formKind || null,
+              spriteOverride: f.spriteOverride || null,
+              primaryTypeOverride: f.primaryTypeOverride,
+              secondaryTypeOverride: f.secondaryTypeOverride,
+              regionOverride: f.regionOverride || null
+            });
+          }
+        }
+        
+        // Force Unown base sprite to be Unown A
+        const unownEntry = allEntries.find(e => e.dexId === 201 && !e.isForm);
+        if (unownEntry) {
+            unownEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-a.png";
+            unownEntry.displayName = "Unown (A)";
+        }
+        const deoxysEntry = allEntries.find(e => e.dexId === 386 && !e.isForm);
+        if (deoxysEntry) {
+            deoxysEntry.pokemonName = "deoxys-normal";
+            deoxysEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/386-normal.png";
+            deoxysEntry.displayName = "Deoxys (Normal Forme)";
+        }
+        const burmyEntry = allEntries.find(e => e.dexId === 412 && !e.isForm);
+        if (burmyEntry) {
+            burmyEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/412-plant.png";
+            burmyEntry.displayName = "Burmy (Plant Cloak)";
+        }
+        const wormadamEntry = allEntries.find(e => e.dexId === 413 && !e.isForm);
+        if (wormadamEntry) {
+            wormadamEntry.pokemonName = "wormadam-plant";
+            wormadamEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/413-plant.png";
+            wormadamEntry.displayName = "Wormadam (Plant Cloak)";
+        }
+        const shellosEntry = allEntries.find(e => e.dexId === 422 && !e.isForm);
+        if (shellosEntry) {
+            shellosEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/422-west.png";
+            shellosEntry.displayName = "Shellos (West Sea)";
+        }
+        const gastrodonEntry = allEntries.find(e => e.dexId === 423 && !e.isForm);
+        if (gastrodonEntry) {
+            gastrodonEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/423-west.png";
+            gastrodonEntry.displayName = "Gastrodon (West Sea)";
+        }
+        const giratinaEntry = allEntries.find(e => e.dexId === 487 && !e.isForm);
+        if (giratinaEntry) {
+            giratinaEntry.pokemonName = "giratina-altered";
+            giratinaEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/487-altered.png";
+            giratinaEntry.displayName = "Giratina (Altered Forme)";
+        }
+        const shayminEntry = allEntries.find(e => e.dexId === 492 && !e.isForm);
+        if (shayminEntry) {
+            shayminEntry.pokemonName = "shaymin-land";
+            shayminEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/492-land.png";
+            shayminEntry.displayName = "Shaymin (Land Forme)";
+        }
+        const arceusEntry = allEntries.find(e => e.dexId === 493 && !e.isForm);
+        if (arceusEntry) {
+            arceusEntry.displayName = "Arceus (Normal Type)";
+        }
+        const basculinEntry = allEntries.find(e => e.dexId === 550 && !e.isForm);
+        if (basculinEntry) {
+            basculinEntry.pokemonName = "basculin-red-striped";
+            basculinEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/550-red-striped.png";
+            basculinEntry.displayName = "Red Stripe Basculin";
+        }
+        const darmanitanEntry = allEntries.find(e => e.dexId === 555 && !e.isForm);
+        if (darmanitanEntry) {
+            darmanitanEntry.pokemonName = "darmanitan-standard";
+            darmanitanEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/555-standard.png";
+            darmanitanEntry.displayName = "Darmanitan (Standard Mode)";
+        }
+        const deerlingEntry = allEntries.find(e => e.dexId === 585 && !e.isForm);
+        if (deerlingEntry) {
+            deerlingEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/585-spring.png";
+            deerlingEntry.displayName = "Spring Deerling";
+        }
+        const sawsbuckEntry = allEntries.find(e => e.dexId === 586 && !e.isForm);
+        if (sawsbuckEntry) {
+            sawsbuckEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/586-spring.png";
+            sawsbuckEntry.displayName = "Spring Sawsbuck";
+        }
+        const tornadusEntry = allEntries.find(e => e.dexId === 641 && !e.isForm);
+        if (tornadusEntry) {
+            tornadusEntry.pokemonName = "tornadus-incarnate";
+            tornadusEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/641-incarnate.png";
+            tornadusEntry.displayName = "Tornadus (Incarnate Forme)";
+        }
+        const thundurusEntry = allEntries.find(e => e.dexId === 642 && !e.isForm);
+        if (thundurusEntry) {
+            thundurusEntry.pokemonName = "thundurus-incarnate";
+            thundurusEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/642-incarnate.png";
+            thundurusEntry.displayName = "Thundurus (Incarnate Forme)";
+        }
+        const landorusEntry = allEntries.find(e => e.dexId === 645 && !e.isForm);
+        if (landorusEntry) {
+            landorusEntry.pokemonName = "landorus-incarnate";
+            landorusEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/645-incarnate.png";
+            landorusEntry.displayName = "Landorus (Incarnate Forme)";
+        }
+        const keldeoEntry = allEntries.find(e => e.dexId === 647 && !e.isForm);
+        if (keldeoEntry) {
+            keldeoEntry.pokemonName = "keldeo-ordinary";
+            keldeoEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/647-ordinary.png";
+            keldeoEntry.displayName = "Keldeo (Ordinary Forme)";
+        }
+        const meloettaEntry = allEntries.find(e => e.dexId === 648 && !e.isForm);
+        if (meloettaEntry) {
+            meloettaEntry.pokemonName = "meloetta-aria";
+            meloettaEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/648-aria.png";
+            meloettaEntry.displayName = "Meloetta (Aria Forme)";
+        }
+        const genesectEntry = allEntries.find(e => e.dexId === 649 && !e.isForm);
+        if (genesectEntry) {
+            genesectEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/649.png";
+            genesectEntry.displayName = "Genesect (Normal)";
+        }
+        const vivillonEntry = allEntries.find(e => e.dexId === 666 && !e.isForm);
+        if (vivillonEntry) {
+            genesectEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-meadow.png";
+            vivillonEntry.displayName = "Vivillon (Meadow Pattern)";
+        }
+        const flabebeEntry = allEntries.find(e => e.dexId === 669 && !e.isForm);
+        if (flabebeEntry) {
+            flabebeEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/669-red.png";
+            flabebeEntry.displayName = "Flabébé (Red Flower)";
+        }
+        const floetteEntry = allEntries.find(e => e.dexId === 670 && !e.isForm);
+        if (floetteEntry) {
+            floetteEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/670-red.png";
+            floetteEntry.displayName = "Floette (Red Flower)";
+        }
+        const florgesEntry = allEntries.find(e => e.dexId === 671 && !e.isForm);
+        if (florgesEntry) {
+            florgesEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/671-red.png";
+            florgesEntry.displayName = "Florges (Red Flower)";
+        }
+        const furfrouEntry = allEntries.find(e => e.dexId === 676 && !e.isForm);
+        if (furfrouEntry) {
+            furfrouEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-natural.png";
+            furfrouEntry.displayName = "Furfrou (Natural Forme)";
+        }
+        const meowsticEntry = allEntries.find(e => e.dexId === 678 && !e.isForm);
+        if (meowsticEntry) {
+            meowsticEntry.pokemonName = "meowstic-male";
+            meowsticEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/678-male.png";
+            meowsticEntry.displayName = "Meowstic (Male)";
+        }
+        const aegislashEntry = allEntries.find(e => e.dexId === 681 && !e.isForm);
+        if (aegislashEntry) {
+            aegislashEntry.pokemonName = "aegislash-shield";
+            aegislashEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/681-shield.png";
+            aegislashEntry.displayName = "Aegislash (Shield)";
+        }
+        const pumpkabooEntry = allEntries.find(e => e.dexId === 710 && !e.isForm);
+        if (pumpkabooEntry) {
+            pumpkabooEntry.pokemonName = "pumpkaboo-small";
+            pumpkabooEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-small.png";
+            pumpkabooEntry.displayName = "Pumpkaboo (Small Size)";
+        }
+        const gourgeistEntry = allEntries.find(e => e.dexId === 711 && !e.isForm);
+        if (gourgeistEntry) {
+            gourgeistEntry.pokemonName = "gourgeist-small";
+            gourgeistEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-small.png";
+            gourgeistEntry.displayName = "Gourgeist (Small Size)";
+        }
+        const zygardeEntry = allEntries.find(e => e.dexId === 718 && !e.isForm);
+        if (zygardeEntry) {
+            zygardeEntry.pokemonName = "zygarde-10";
+            zygardeEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/718-10.png";
+            zygardeEntry.displayName = "Zygarde (10% Forme)";
+        }
+        const oricorioEntry = allEntries.find(e => e.dexId === 741 && !e.isForm);
+        if (oricorioEntry) {
+            oricorioEntry.pokemonName = "oricorio-baile";
+            oricorioEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/741-baile.png";
+            oricorioEntry.displayName = "Oricorio (Baile Style)";
+        }
+        const lycanrocEntry = allEntries.find(e => e.dexId === 745 && !e.isForm);
+        if (lycanrocEntry) {
+            lycanrocEntry.pokemonName = "lycanroc-midday";
+            lycanrocEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/745-midday.png";
+            lycanrocEntry.displayName = "Lycanroc (Midday Forme)";
+        }
+        const wishiwashiEntry = allEntries.find(e => e.dexId === 746 && !e.isForm);
+        if (wishiwashiEntry) {
+            wishiwashiEntry.pokemonName = "wishiwashi-solo";
+            wishiwashiEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/746-solo.png";
+            wishiwashiEntry.displayName = "Wishiwashi (Solo Forme)";
+        }
+        const silvallyEntry = allEntries.find(e => e.dexId === 773 && !e.isForm);
+        if (silvallyEntry) {
+            silvallyEntry.pokemonName = "silvally-normal";
+            silvallyEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-normal.png";
+            silvallyEntry.displayName = "Silvally (Normal Type)";
+        }
+        const miniorEntry = allEntries.find(e => e.dexId === 774 && !e.isForm);
+        if (miniorEntry) {
+            miniorEntry.pokemonName = "minior-red-meteor";
+            miniorEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/774-meteor.png";
+            miniorEntry.displayName = "Minior (Meteor Forme)";
+        }
+        const mimikyuEntry = allEntries.find(e => e.dexId === 778 && !e.isForm);
+        if (mimikyuEntry) {
+            mimikyuEntry.pokemonName = "mimikyu-disguised";
+            mimikyuEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/778-disguised.png";
+            mimikyuEntry.displayName = "Mimikyu (Disquised Forme)";
+        }
+        const toxtricityEntry = allEntries.find(e => e.dexId === 849 && !e.isForm);
+        if (toxtricityEntry) {
+            toxtricityEntry.pokemonName = "toxtricity-low-key";
+            toxtricityEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/849-low-key.png";
+            toxtricityEntry.displayName = "Toxtricity (Low Key Forme)";
+        }
+        const alcremieEntry = allEntries.find(e => e.dexId === 869 && !e.isForm);
+        if (alcremieEntry) {
+            alcremieEntry.pokemonName = "alcremie";
+            alcremieEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-vanilla-cream-strawberry-sweet.png";
+            alcremieEntry.displayName = "Alcremie (Vanilla Cream/Strawberry)";
+        }
+        const eiscueEntry = allEntries.find(e => e.dexId === 875 && !e.isForm);
+        if (eiscueEntry) {
+            eiscueEntry.pokemonName = "eiscue-ice";
+            eiscueEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/875-ice.png";
+            eiscueEntry.displayName = "Eiscue (Ice Face)";
+        }
+        const indeedeeEntry = allEntries.find(e => e.dexId === 876 && !e.isForm);
+        if (indeedeeEntry) {
+            indeedeeEntry.pokemonName = "indeedee-male";
+            indeedeeEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/876-male.png";
+            indeedeeEntry.displayName = "Indeedee (Male)";
+        }
+        const morpekoEntry = allEntries.find(e => e.dexId === 877 && !e.isForm);
+        if (morpekoEntry) {
+            morpekoEntry.pokemonName = "morpeko-full-belly";
+            morpekoEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/877-full-belly.png";
+            morpekoEntry.displayName = "Morpeko (Full Belly)";
+        }
+        const zacianEntry = allEntries.find(e => e.dexId === 888 && !e.isForm);
+        if (zacianEntry) {
+            zacianEntry.displayName = "Hero of Many Battles Zacian";
+        }
+        const zamazentaEntry = allEntries.find(e => e.dexId === 889 && !e.isForm);
+        if (zamazentaEntry) {
+            zamazentaEntry.displayName = "Hero of Many Battles Zamazenta";
+        }
+        const urshifuEntry = allEntries.find(e => e.dexId === 892 && !e.isForm);
+        if (urshifuEntry) {
+            urshifuEntry.pokemonName = "urshifu-single-strike";
+            urshifuEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/892-single-strike.png";
+            urshifuEntry.displayName = "Single Strike Urshifu";
+        }
+        const basculegionEntry = allEntries.find(e => e.dexId === 902 && !e.isForm);
+        if (basculegionEntry) {
+            basculegionEntry.pokemonName = "basculegion-male";
+            basculegionEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/902-male.png";
+            basculegionEntry.displayName = "Basculegion (Male)";
+        }
+        const enamorusEntry = allEntries.find(e => e.dexId === 905 && !e.isForm);
+        if (enamorusEntry) {
+            enamorusEntry.pokemonName = "enamorus-incarnate";
+            enamorusEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/905-incarnate.png";
+            enamorusEntry.displayName = "Enamorus (Incarnate Forme)";
+        }
+        const oinkologneEntry = allEntries.find(e => e.dexId === 916 && !e.isForm);
+        if (oinkologneEntry) {
+            oinkologneEntry.pokemonName = "oinkologne-male";
+            oinkologneEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/916-male.png";
+            oinkologneEntry.displayName = "Oinkologne (Male)";
+        }
+        const mausholdEntry = allEntries.find(e => e.dexId === 925 && !e.isForm);
+        if (mausholdEntry) {
+            mausholdEntry.pokemonName = "maushold-family-of-three";
+            mausholdEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/925-family-of-three.png";
+            mausholdEntry.displayName = "Maushold (Family of Three)";
+        }
+        const squawkabillyEntry = allEntries.find(e => e.dexId === 931 && !e.isForm);
+        if (squawkabillyEntry) {
+            squawkabillyEntry.pokemonName = "squawkabilly-green-plumage"
+            squawkabillyEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/931.png";
+            squawkabillyEntry.displayName = "Squawkabilly (Green Plumage)";
+        }
+        const palafinEntry = allEntries.find(e => e.dexId === 964 && !e.isForm);
+        if (palafinEntry) {
+            palafinEntry.pokemonName = "palafin-zero"
+            palafinEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/964.png";
+            palafinEntry.displayName = "Palafin (Zero Form)";
+        }
+        const tatsugiriEntry = allEntries.find(e => e.dexId === 978 && !e.isForm);
+        if (tatsugiriEntry) {
+            tatsugiriEntry.pokemonName = "tatsugiri-curly"
+            tatsugiriEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/978-curly.png";
+            tatsugiriEntry.displayName = "Tatsugiri (Curly Form)";
+        }
+        const dudunsparceEntry = allEntries.find(e => e.dexId === 982 && !e.isForm);
+        if (dudunsparceEntry) {
+            dudunsparceEntry.pokemonName = "dudunsparce-two-segment"
+            dudunsparceEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/982-two-segment.png";
+            dudunsparceEntry.displayName = "Dudunsparce (Two Segment)";
+        }
+        const gimmighoulEntry = allEntries.find(e => e.dexId === 999 && !e.isForm);
+        if (gimmighoulEntry) {
+          gimmighoulEntry.displayName = "Gimmighoul (Chest Form)"
+        }
+        const ogerponEntry = allEntries.find(e => e.dexId === 1017 && !e.isForm);
+        if (ogerponEntry) {
+          ogerponEntry.displayName = "Ogerpon (Teal Mask)"
+        }
+        const terapagosEntry = allEntries.find(e => e.dexId === 1024 && !e.isForm);
+        if (terapagosEntry) {
+          terapagosEntry.displayName = "Terapagos (Normal Form)"
+        }
+
+        statusMain.textContent =
+          "Pokédex loaded: " + allEntries.length + " entries (species + forms).";
+        statusProgress.textContent =
+          "Press Start to begin, or it will resume if you had a previous session.";
+        startBtn.disabled = false;
+        resetBtn.disabled = false;
+        musicBtn.disabled = false;
+
+        restoreStateIfExists();
+      } catch (err) {
+        console.error(err);
+        statusMain.textContent = "Error loading Pokédex.";
+        statusProgress.textContent = "Check your connection and reload the page.";
+      }
+    }
+
+    function initVolumeControl() {
+        if (!bgm || !volumeSlider) return;
+
+        // Load saved volume or default to 0.7 (70%)
+        const saved = parseFloat(localStorage.getItem(VOLUME_KEY));
+        const initialVolume = isNaN(saved) ? 0.7 : saved;
+
+        bgm.volume = initialVolume;
+        volumeSlider.value = Math.round(initialVolume * 100);
+
+        // Update volume live as the slider moves
+        volumeSlider.addEventListener("input", () => {
+        const v = volumeSlider.value / 100; // 0.0–1.0
+        bgm.volume = v;
+        localStorage.setItem(VOLUME_KEY, v.toString());
+        });
+    }
+
+    // Call this once after the DOM is ready and bgm is defined
+    initVolumeControl();
+
+
+    async function toggleMusic() {
+        if (!bgm) return;
+
+        if (!musicEnabled) {
+            try {
+                await bgm.play();
+                musicEnabled = true;
+                musicBtn.textContent = "Music: On";
+            } catch (err) {
+                console.error("Could not start music:", err);
+                // If browser blocks autoplay, you might see an error here.
+            }
+        } else {
+            bgm.pause();
+            musicEnabled = false;
+            musicBtn.textContent = "Music: Off";
+        }
+    }
+
+
+    function setCardContent(side, entryIndex) {
+      const entry = allEntries[entryIndex];
+      const prettyName = fullDisplayName(entry);
+      const dexId = entry.dexId;
+
+      if (side === "left") {
+        nameLeft.textContent = prettyName;
+        idLeft.textContent = "No." + dexId;
+        imgLeft.style.display = "none";
+        imgPlaceholderLeft.style.display = "block";
+        imgPlaceholderLeft.textContent = "Loading…";
+
+        getPokemonInfo(entry.pokemonName, entry.spriteOverride).then((info) => {
+          const ballEl = document.querySelector("#card-left .selection-ball");
+
+          // Use overrides if present
+          const primaryType = entry.primaryTypeOverride || info.primaryType;
+          const secondaryType =
+            entry.secondaryTypeOverride !== undefined
+              ? entry.secondaryTypeOverride
+              : info.secondaryType;
+
+          const primaryColor = TYPE_COLORS[primaryType] || "#ef4444";
+          const secondaryColor = TYPE_COLORS[secondaryType] || primaryColor;
+    
+          if (ballEl) {
+            ballEl.style.background =
+              "linear-gradient(to bottom," +
+              primaryColor + " 0%," +
+              primaryColor + " 48%,#111827 48%,#111827 52%," +
+              secondaryColor + " 52%," +
+              secondaryColor + " 100%)";
+    
+            ballEl.classList.remove(
+              "mega-ring",
+              "gmax-ring",
+              "regional-ring",
+              "variant-ring",
+              "special-ring"
+            );
+
+            let ringKind = entry.formKind || null;
+            if (!ringKind && entry.isForm) {
+              if (/alola|galar|hisui|paldea/i.test(entry.pokemonName)) {
+                ringKind = "regional";
+              }
+            }
+            if (ringKind) {
+              ballEl.classList.add(ringKind + "-ring");
+            }
+          }
+    
+          // ✅ Prefer per-entry override
+          const spriteUrl = entry.spriteOverride || info.sprite;
+    
+          if (spriteUrl) {
+            imgLeft.src = spriteUrl;
+            imgLeft.style.display = "block";
+            imgPlaceholderLeft.style.display = "none";
+          } else {
+            imgLeft.style.display = "none";
+            imgPlaceholderLeft.style.display = "block";
+            imgPlaceholderLeft.textContent = "No image";
+          }
+        });
+
+      } else {
+        nameRight.textContent = prettyName;
+        idRight.textContent = "No." + dexId;
+        imgRight.style.display = "none";
+        imgPlaceholderRight.style.display = "block";
+        imgPlaceholderRight.textContent = "Loading…";
+
+        getPokemonInfo(entry.pokemonName, entry.spriteOverride).then((info) => {
+          const ballEl = document.querySelector("#card-right .selection-ball");
+
+          const primaryType = entry.primaryTypeOverride || info.primaryType;
+          const secondaryType =
+            entry.secondaryTypeOverride !== undefined
+              ? entry.secondaryTypeOverride
+              : info.secondaryType;
+    
+          const primaryColor = TYPE_COLORS[primaryType] || "#ef4444";
+          const secondaryColor = TYPE_COLORS[secondaryType] || primaryColor;
+    
+          if (ballEl) {
+            ballEl.style.background =
+              "linear-gradient(to bottom," +
+              primaryColor + " 0%," +
+              primaryColor + " 48%,#111827 48%,#111827 52%," +
+              secondaryColor + " 52%," +
+              secondaryColor + " 100%)";
+
+            ballEl.classList.remove(
+              "mega-ring",
+              "gmax-ring",
+              "regional-ring",
+              "variant-ring",
+              "special-ring"
+            );
+
+            let ringKind = entry.formKind || null;
+            if (!ringKind && entry.isForm) {
+              if (/alola|galar|hisui|paldea/i.test(entry.pokemonName)) {
+                ringKind = "regional";
+              }
+            }
+            if (ringKind) {
+              ballEl.classList.add(ringKind + "-ring");
+            }
+          }
+    
+          // ✅ Prefer per-entry override
+          const spriteUrl = entry.spriteOverride || info.sprite;
+
+          if (spriteUrl) {
+            imgRight.src = spriteUrl;
+            imgRight.style.display = "block";
+            imgPlaceholderRight.style.display = "none";
+          } else {
+            imgRight.style.display = "none";
+            imgPlaceholderRight.style.display = "block";
+            imgPlaceholderRight.textContent = "No image";
+          }
+        });
+      }
+    }
+
+
+    function updateButtonsEnabled(enabled) {
+      btnLeft.disabled = !enabled;
+      btnRight.disabled = !enabled;
+      skipBtn.disabled = !enabled;
+    }
+
+    function updateInsertionStatusTexts() {
+      const entry = allEntries[currentInsertIndex];
+      statusMain.textContent =
+        "Inserting " +
+        fullDisplayName(entry) +
+        " (No." +
+        entry.dexId +
+        ") into your list.";
+      const lastDex = allEntries[allEntries.length - 1].dexId;
+      statusProgress.textContent =
+        "Progress: No." + entry.dexId + " out of " + lastDex;
+    }
+
+    function startSorting() {
+      if (allEntries.length < 2) return;
+      ranking = [];
+      currentInsertIndex = null;
+      compareRankPos = null;
+      mode = "initial";
+      logBox.innerHTML = "";
+      log("Sorting started. First: Bulbasaur vs Ivysaur.");
+      statusMain.textContent = "Round 1: Pick between Bulbasaur and Ivysaur.";
+      statusProgress.textContent = "";
+      startBtn.textContent = "Restart";
+
+      compareTitle.textContent = "Which do you like more to start?";
+      setCardContent("left", 0);
+      setCardContent("right", 1);
+      updateButtonsEnabled(true);
+      updateRankingUI();
+      saveState();
+    }
+
+    function startInsertionForCurrent() {
+      if (currentInsertIndex === null || currentInsertIndex >= allEntries.length) {
+        finishSorting();
+        return;
+      }
+
+      mode = "inserting";
+      compareRankPos = ranking.length - 1;
+      updateInsertionStatusTexts();
+      showCurrentComparison();
+      saveState();
+    }
+
+    function showCurrentComparison() {
+      if (mode === "initial") {
+        updateButtonsEnabled(true);
+        return;
+      }
+      if (mode !== "inserting") return;
+
+      if (compareRankPos === null || compareRankPos < 0 || ranking.length === 0) {
+        insertCurrentAtTop();
+        return;
+      }
+
+      const currentEntryIndex = currentInsertIndex;
+      const opponentEntryIndex = ranking[compareRankPos];
+
+      const challenger = allEntries[currentEntryIndex];
+      const opponent = allEntries[opponentEntryIndex];
+
+      compareTitle.textContent = "Who do you like more right now?";
+
+      setCardContent("left", currentEntryIndex);
+      setCardContent("right", opponentEntryIndex);
+
+      log(
+        "Comparing " +
+          fullDisplayName(challenger) +
+          " (No." +
+          challenger.dexId +
+          ") vs " +
+          fullDisplayName(opponent) +
+          " (No." +
+          opponent.dexId +
+          ")."
+      );
+
+      updateButtonsEnabled(true);
+    }
+
+    function insertCurrentAtTop() {
+      ranking.unshift(currentInsertIndex);
+      const entry = allEntries[currentInsertIndex];
+      log(
+        fullDisplayName(entry) +
+          " (No." +
+          entry.dexId +
+          ") beat everyone and is now your new #1."
+      );
+      updateRankingUI();
+      moveToNextInsert();
+    }
+
+    function insertCurrentAfterOpponent() {
+      const pos = compareRankPos;
+      const opponentIndex = ranking[pos];
+      ranking.splice(pos + 1, 0, currentInsertIndex);
+
+      const entry = allEntries[currentInsertIndex];
+      const opp = allEntries[opponentIndex];
+
+      log(
+        fullDisplayName(entry) +
+          " (No." +
+          entry.dexId +
+          ") placed just below " +
+          fullDisplayName(opp) +
+          " (No." +
+          opp.dexId +
+          ")."
+      );
+      updateRankingUI();
+      moveToNextInsert();
+    }
+
+    function moveToNextInsert() {
+      currentInsertIndex++;
+      if (currentInsertIndex >= allEntries.length) {
+        finishSorting();
+      } else {
+        startInsertionForCurrent();
+      }
+      saveState();
+    }
+
+    function finishSorting() {
+      mode = "done";
+      updateButtonsEnabled(false);
+      skipBtn.disabled = true;
+      statusMain.textContent = "You’ve ranked the entire Pokédex!";
+      statusProgress.textContent = "";
+      compareTitle.textContent = "🎉 Sorting complete. Scroll to bottom for your full ranking in a grid. 🎉";
+      log("All entries processed. You now have a full personal ranking.");
+      saveState();
+    }
+
+    function handleChoice(side) {
+      if (mode === "idle") return;
+
+      if (mode === "initial") {
+        let first, second;
+        if (side === "left") {
+          first = 0;
+          second = 1;
+          log("You prefer Bulbasaur over Ivysaur. #1 Bulbasaur, #2 Ivysaur.");
+        } else {
+          first = 1;
+          second = 0;
+          log("You prefer Ivysaur over Bulbasaur. #1 Ivysaur, #2 Bulbasaur.");
+        }
+        ranking = [first, second];
+        updateRankingUI();
+
+        currentInsertIndex = 2;
+        startInsertionForCurrent();
+        saveState();
+        return;
+      }
+
+      if (mode !== "inserting") return;
+      if (currentInsertIndex === null) return;
+
+      const currentIdx = currentInsertIndex;
+      const oppIdx = ranking[compareRankPos];
+
+      const currentEntry = allEntries[currentIdx];
+      const oppEntry = allEntries[oppIdx];
+
+      if (side === "left") {
+        log(
+          "You chose " +
+            fullDisplayName(currentEntry) +
+            " over " +
+            fullDisplayName(oppEntry) +
+            "."
+        );
+        if (compareRankPos === 0) {
+          insertCurrentAtTop();
+        } else {
+          compareRankPos--;
+          showCurrentComparison();
+          saveState();
+        }
+      } else {
+        log(
+          "You chose " +
+            fullDisplayName(oppEntry) +
+            " over " +
+            fullDisplayName(currentEntry) +
+            "."
+        );
+        insertCurrentAfterOpponent();
+      }
+    }
+
+    function skipCurrentBattle() {
+      if (mode === "initial") {
+        log("You skipped the very first comparison. Try to pick one to start.");
+        return;
+      }
+      if (mode !== "inserting") return;
+
+      const cur = allEntries[currentInsertIndex];
+      const opp = allEntries[ranking[compareRankPos]];
+      log(
+        "Skipped comparison: " +
+          fullDisplayName(cur) +
+          " vs " +
+          fullDisplayName(opp) +
+          "."
+      );
+
+      if (compareRankPos === 0) {
+        insertCurrentAtTop();
+      } else {
+        compareRankPos--;
+        showCurrentComparison();
+        saveState();
+      }
+    }
+
+    function resetSorting() {
+      ranking = [];
+      currentInsertIndex = null;
+      compareRankPos = null;
+      mode = "idle";
+      updateRankingUI();
+      compareTitle.textContent = "Waiting to start…";
+      nameLeft.textContent = "—";
+      idLeft.textContent = "";
+      imgLeft.style.display = "none";
+      imgPlaceholderLeft.style.display = "block";
+      imgPlaceholderLeft.textContent = "No image";
+
+      nameRight.textContent = "—";
+      idRight.textContent = "";
+      imgRight.style.display = "none";
+      imgPlaceholderRight.style.display = "block";
+      imgPlaceholderRight.textContent = "No image";
+
+      statusMain.textContent =
+        "Pokédex loaded: " + allEntries.length + " entries (species + forms).";
+      statusProgress.textContent = "Press Start to begin.";
+      logBox.innerHTML = "";
+      log("Sorting reset. Press Start when you’re ready again.");
+      updateButtonsEnabled(false);
+      skipBtn.disabled = true;
+      startBtn.textContent = "Start!";
+      clearState();
+    }
+
+    function restoreStateIfExists() {
+      let raw;
+      try {
+        raw = localStorage.getItem(STORAGE_KEY);
+      } catch (err) {
+        console.error("Error reading storage:", err);
+        return;
+      }
+         if (!raw) {
+          updateRankingUI();
+          // 👇 Auto-start as soon as the Pokédex is loaded
+          if (allEntries.length >= 2) {
+            startSorting();
+          }
+          return;
+        }
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (err) {
+        console.error("Error parsing stored state:", err);
+        return;
+      }
+
+      if (!data || !Array.isArray(data.ranking)) {
+        updateRankingUI();
+        return;
+      }
+
+      ranking = data.ranking.filter(
+        (i) => typeof i === "number" && i >= 0 && i < allEntries.length
+      );
+      currentInsertIndex =
+        typeof data.currentInsertIndex === "number"
+          ? data.currentInsertIndex
+          : null;
+      compareRankPos =
+        typeof data.compareRankPos === "number"
+          ? data.compareRankPos
+          : null;
+      mode = data.mode || "idle";
+
+      updateRankingUI();
+      logBox.innerHTML = "";
+      startBtn.textContent = "Restart";
+
+      if (mode === "idle") {
+        statusMain.textContent =
+          "Pokédex loaded: " + allEntries.length + " entries (species + forms).";
+        statusProgress.textContent = "Press Start to begin.";
+        updateButtonsEnabled(false);
+        skipBtn.disabled = true;
+        log("No active session. Press Start to begin.");
+        return;
+      }
+
+      if (mode === "done") {
+        statusMain.textContent =
+          "Previous session finished. You can reset to start over.";
+        statusProgress.textContent = "";
+        compareTitle.textContent = "Sorting complete 🎉";
+        updateButtonsEnabled(false);
+        skipBtn.disabled = true;
+        log("Restored finished ranking from previous session.");
+        return;
+      }
+
+      if (mode === "initial") {
+        statusMain.textContent =
+          "Round 1: Pick between Bulbasaur and Ivysaur (resumed).";
+        statusProgress.textContent = "";
+        compareTitle.textContent = "Which do you like more to start?";
+        setCardContent("left", 0);
+        setCardContent("right", 1);
+        updateButtonsEnabled(true);
+        skipBtn.disabled = true;
+        log("Restored session at the very first comparison.");
+        return;
+      }
+
+      if (mode === "inserting") {
+        if (
+          currentInsertIndex === null ||
+          currentInsertIndex >= allEntries.length
+        ) {
+          finishSorting();
+          return;
+        }
+        if (
+          compareRankPos === null ||
+          compareRankPos < 0 ||
+          compareRankPos >= ranking.length
+        ) {
+          compareRankPos = ranking.length - 1;
+        }
+
+        updateInsertionStatusTexts();
+        compareTitle.textContent = "Who do you like more right now?";
+        showCurrentComparison();
+        updateButtonsEnabled(true);
+        skipBtn.disabled = false;
+        log("Restored session mid-insertion. Continue making choices.");
+        return;
+      }
+    }
+    // --- EVENTS ---
+
+    musicBtn.addEventListener("click", () => {
+        console.log("Music button clicked");
+        toggleMusic();
+    });
+
+
+    startBtn.addEventListener("click", () => {
+      resetSorting();
+      startSorting();
+    });
+
+    btnLeft.addEventListener("click", () => {
+      updateButtonsEnabled(false);
+      handleChoice("left");
+    });
+
+    btnRight.addEventListener("click", () => {
+      updateButtonsEnabled(false);
+      handleChoice("right");
+    });
+
+    skipBtn.addEventListener("click", () => {
+      skipCurrentBattle();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetSorting();
+    });
+
+    // --- INIT ---
+
+    fetchSpeciesListAndBuildEntries();
+  </script>
+</body>
+</html>
