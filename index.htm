@@ -503,11 +503,7 @@
     <header>
       <h1>Ultimate Favorite Pokémon Sorter</h1>
       <p class="subtitle">
-        Welcome to the Ultimate Favorite Pokémon Sorter. Here you will be asked to pick between two pokemon as to which you prefer, whether it be how it looks, performs in battle, or however you decide to pick.
-        One a pokémon is chosen, it will be added to the list of your full ranking. Be aware although the pokemon you will be shown are in National Pokédex Order, if that pokémon has a regional variant, mega,
-        and/or G-Max form you'll see those forms first before it moves onto the next pokémon. So you'll see Mega Venusaur and G-Max Venusaur before you see Charmander. Also rings will be placed around the
-        pokémon in the selection section to help tell the difference between forms with Blue = Mega, Red = G-Max, Purple = Regional Variant, Pink = variant(think floette flowers), and Green = Special one time
-        forms like Eternal FLower FLoette and Shadow Lugia. Thankfully I didn't add every gender difference, only ones that legitimentally count as alternate forms.
+        Welcome to the Ultimate Favorite Pokémon Sorter, where you will rank pokemon in head to head comparisons to find which one is your favorite.
       </p>
     </header>
 
@@ -619,6 +615,7 @@
     const musicBtn = document.getElementById("music-btn");
     let musicEnabled = false;
 
+    let singleUnownMode = false;
 
     // Put YOUR icon URLs here (leave "" to just show text M / Gx)
     const MEGA_ICON_URL = "https://archives.bulbagarden.net/media/upload/b/bb/Tretta_Mega_Evolution_icon.png";
@@ -825,35 +822,37 @@
       199: [
         { pokemonName: "slowking-galar", label: "Galarian Slowking", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/199-regional-g.png" } 
       ],
-      201: [
-        { pokemonName: "unown", label: "Unown (B)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-b.png" } ,
-        { pokemonName: "unown", label: "Unown (C)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-c.png" } ,
-        { pokemonName: "unown", label: "Unown (D)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-d.png" } ,
-        { pokemonName: "unown", label: "Unown (E)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-e.png" } ,
-        { pokemonName: "unown", label: "Unown (F)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-f.png" } ,
-        { pokemonName: "unown", label: "Unown (G)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-g.png" } ,
-        { pokemonName: "unown", label: "Unown (H)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-h.png" } ,
-        { pokemonName: "unown", label: "Unown (I)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-i.png" } ,
-        { pokemonName: "unown", label: "Unown (J)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-j.png" } ,
-        { pokemonName: "unown", label: "Unown (K)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-k.png" } ,
-        { pokemonName: "unown", label: "Unown (L)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-l.png" } ,
-        { pokemonName: "unown", label: "Unown (M)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-m.png" } ,
-        { pokemonName: "unown", label: "Unown (N)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-n.png" } ,
-        { pokemonName: "unown", label: "Unown (O)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-o.png" } ,
-        { pokemonName: "unown", label: "Unown (P)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-p.png" } ,
-        { pokemonName: "unown", label: "Unown (Q)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-q.png" } ,
-        { pokemonName: "unown", label: "Unown (R)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-r.png" } ,
-        { pokemonName: "unown", label: "Unown (S)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-s.png" } ,
-        { pokemonName: "unown", label: "Unown (T)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-t.png" } ,
-        { pokemonName: "unown", label: "Unown (U)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-u.png" } ,
-        { pokemonName: "unown", label: "Unown (V)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-v.png" } ,
-        { pokemonName: "unown", label: "Unown (W)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-w.png" } ,
-        { pokemonName: "unown", label: "Unown (X)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-x.png" } ,
-        { pokemonName: "unown", label: "Unown (Y)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-y.png" } ,
-        { pokemonName: "unown", label: "Unown (Z)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-z.png" } ,
-        { pokemonName: "unown", label: "Unown (!)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-exclamation.png" } ,
-        { pokemonName: "unown", label: "Unown (?)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-question.png" } ,
-      ],
+      if (!singleUnownMode){
+        201: [
+          { pokemonName: "unown", label: "Unown (B)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-b.png" } ,
+          { pokemonName: "unown", label: "Unown (C)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-c.png" } ,
+          { pokemonName: "unown", label: "Unown (D)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-d.png" } ,
+          { pokemonName: "unown", label: "Unown (E)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-e.png" } ,
+          { pokemonName: "unown", label: "Unown (F)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-f.png" } ,
+          { pokemonName: "unown", label: "Unown (G)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-g.png" } ,
+          { pokemonName: "unown", label: "Unown (H)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-h.png" } ,
+          { pokemonName: "unown", label: "Unown (I)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-i.png" } ,
+          { pokemonName: "unown", label: "Unown (J)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-j.png" } ,
+          { pokemonName: "unown", label: "Unown (K)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-k.png" } ,
+          { pokemonName: "unown", label: "Unown (L)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-l.png" } ,
+          { pokemonName: "unown", label: "Unown (M)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-m.png" } ,
+          { pokemonName: "unown", label: "Unown (N)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-n.png" } ,
+          { pokemonName: "unown", label: "Unown (O)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-o.png" } ,
+          { pokemonName: "unown", label: "Unown (P)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-p.png" } ,
+          { pokemonName: "unown", label: "Unown (Q)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-q.png" } ,
+          { pokemonName: "unown", label: "Unown (R)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-r.png" } ,
+          { pokemonName: "unown", label: "Unown (S)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-s.png" } ,
+          { pokemonName: "unown", label: "Unown (T)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-t.png" } ,
+          { pokemonName: "unown", label: "Unown (U)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-u.png" } ,
+          { pokemonName: "unown", label: "Unown (V)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-v.png" } ,
+          { pokemonName: "unown", label: "Unown (W)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-w.png" } ,
+          { pokemonName: "unown", label: "Unown (X)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-x.png" } ,
+          { pokemonName: "unown", label: "Unown (Y)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-y.png" } ,
+          { pokemonName: "unown", label: "Unown (Z)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-z.png" } ,
+          { pokemonName: "unown", label: "Unown (!)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-exclamation.png" } ,
+          { pokemonName: "unown", label: "Unown (?)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-question.png" } ,
+        ],
+          }
       208: [
         { pokemonName: "steelix-mega", label: "Mega Steelix", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/208-mega.png" } 
       ],
@@ -2496,6 +2495,15 @@
         "Progress: No." + entry.dexId + " out of " + lastDex;
     }
 
+    function askUnownMode() {
+      const choice = confirm(
+        "Do you want to rank ALL Unown forms?\n\n" +
+        "YES = Shows all Unown letters\n" +
+        "NO = Only shows Unown A"
+      );
+      singleUnownMode = !choice;
+    }
+    
     function startSorting() {
       if (allEntries.length < 2) return;
       ranking = [];
@@ -2853,6 +2861,7 @@
 
 
     startBtn.addEventListener("click", () => {
+      askUnownMode();
       resetSorting();
       startSorting();
     });
@@ -2881,19 +2890,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
