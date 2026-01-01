@@ -1643,6 +1643,7 @@
     // Each entry = { dexId, pokemonName, displayName?, isForm, formKind? }
     let allEntries = [];
     let baseEntries = []; // unfiltered/unordered master list
+    let baseSpeciesNameByDexId = {}; // dexId -> base species slug (e.g., 52 -> 'meowth')
 
     // ordering modes: national | families | staged | random
     let orderingMode = "national";
@@ -2386,8 +2387,11 @@ function undoLastAction() {
 
     
     function bulbapediaUrlForEntry(entry) {
-      // Use Bulbapedia's search so forms like "Deoxys (Attack Forme)" still resolve nicely.
-      const q = fullDisplayName(entry);
+      // Always link to the base species page (e.g., Meowth for Galarian Meowth, Arceus for all plates).
+      // We use Bulbapedia's search to keep it robust for punctuation (Nidoran♀/♂, Farfetch'd, etc.).
+      const baseSlug =
+        (entry && entry.dexId != null && baseSpeciesNameByDexId[entry.dexId]) || (entry ? entry.pokemonName : "");
+      const q = niceName(baseSlug || "");
       return "https://bulbapedia.bulbagarden.net/wiki/Special:Search?search=" + encodeURIComponent(q);
     }
 
@@ -4548,7 +4552,15 @@ if (singleUnownMode) {
         }
 
         
-    }
+    
+
+        // Build dexId -> base species map (used for Bulbapedia links so forms/variants go to the main page)
+        baseSpeciesNameByDexId = {};
+        for (const e of allEntries) {
+          if (!e.isForm && e.dexId != null) baseSpeciesNameByDexId[e.dexId] = e.pokemonName;
+        }
+
+}
 
     function shuffleInPlace(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
