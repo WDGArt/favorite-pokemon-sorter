@@ -66,11 +66,19 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
     }
 
-    .status-bar span {
+    
+    .status-controls {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+.status-bar span {
       white-space: nowrap;
     }
 
@@ -137,6 +145,7 @@
       flex-wrap: wrap;
     }
 
+    
     .poke-card {
       flex: 1 1 160px;
       max-width: 230px;
@@ -149,6 +158,7 @@
       align-items: center;
       text-align: center;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+      position: relative;
     }
 
     .poke-name {
@@ -162,6 +172,32 @@
       font-size: 0.75rem;
       color: #9ca3af;
       margin-bottom: 4px;
+    }
+
+
+    .bulba-link {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      font-size: 0.75rem;
+      opacity: 0;
+      transition: opacity 120ms ease-in-out;
+      pointer-events: none; /* avoid affecting clicks until visible */
+    }
+    .poke-card:hover .bulba-link {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .bulba-link a {
+      color: #93c5fd;
+      text-decoration: none;
+      background: rgba(2, 6, 23, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 2px 6px;
+      border-radius: 999px;
+    }
+    .bulba-link a:hover {
+      text-decoration: underline;
     }
 
     .image-wrap {
@@ -204,6 +240,21 @@
       background: #f9fafb;
       border: 2px solid #111827;
       box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.7);
+    }
+
+    /* Smooth bounce animation */
+    @keyframes poke-bounce-hover {
+      0%   { transform: translateY(0); }
+      25%  { transform: translateY(-8px); }
+      50%  { transform: translateY(-2px); }
+      75%  { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
+    }
+
+
+    /* Trigger bounce when hovering the card */
+    .poke-card:hover img {
+      animation: poke-bounce-hover 0.9s ease-in-out infinite;
     }
 
     /* Sprite inside the selection ball */
@@ -297,7 +348,7 @@
       padding: 2px 0;
       border-bottom: 1px solid #020617;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 6px;
     }
 
@@ -327,14 +378,7 @@
     }
 
     .log-box {
-      max-height: 80px;
-      overflow-y: auto;
-      font-size: 0.78rem;
-      border-radius: 8px;
-      border: 1px solid #111827;
-      padding: 4px 6px;
-      background: #020617;
-      color: #9ca3af;
+      display: none;
     }
 
     .log-box p {
@@ -359,6 +403,11 @@
       margin: 0 0 4px;
       font-size: 1rem;
     }
+
+    .secondary-grid-title {
+      margin-top: 12px;
+    }
+
 
     .full-ranking-grid {
       margin-top: 6px;
@@ -457,6 +506,13 @@
       margin-top: 4px;
     }
 
+    .curated-dex {
+      margin-top: 2px;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      letter-spacing: 0.02em;
+    }
+
     /* Form badges bottom-right (image-based, with fallback text) */
 
     .form-badge {
@@ -495,7 +551,7 @@
     .form-badge.regional-badge {
         background: radial-gradient(circle at 30% 30%, #e5d9ff, #6d28d9);
     }
-  </style>
+</style>
 </head>
 <body>
   <div class="app">
@@ -508,8 +564,7 @@
     </header>
 
     <div class="status-bar">
-        <span id="status-main">Loading Pokédex data from PokéAPI…</span>
-        <span id="status-progress"></span>
+      <div class="status-controls">
 
         <div class="volume-control">
             <label for="volume-slider">🔊</label>
@@ -518,12 +573,13 @@
                 id="volume-slider"
                 min="0"
                 max="100"
-                value="50"
+                value="25"
             />
         </div>
 
         <button id="music-btn" class="secondary" disabled>Music: Off</button>
         <button id="start-btn" disabled>Start!</button>
+      </div>
     </div>
 
 
@@ -536,7 +592,8 @@
           <div class="poke-card" id="card-left">
             <div class="poke-name" id="name-left">—</div>
             <div class="poke-id" id="id-left"></div>
-            <div class="image-wrap">
+                        <div class="bulba-link"><a id="bulba-left" href="#" target="_blank" rel="noopener noreferrer">Bulbapedia</a></div>
+<div class="image-wrap">
               <div class="selection-ball">
                     <div class="selection-center"></div>
                         <img id="img-left" alt="" style="display:none;">
@@ -554,7 +611,8 @@
           <div class="poke-card" id="card-right">
             <div class="poke-name" id="name-right">—</div>
             <div class="poke-id" id="id-right"></div>
-            <div class="image-wrap">
+                        <div class="bulba-link"><a id="bulba-right" href="#" target="_blank" rel="noopener noreferrer">Bulbapedia</a></div>
+<div class="image-wrap">
               <div class="selection-ball">
                 <div class="selection-center"></div>
                     <img id="img-right" alt="" style="display:none;">
@@ -567,7 +625,8 @@
         </div>
 
         <div class="compare-footer">
-          <button id="skip-btn" class="secondary" disabled>Skip this battle</button>
+          <button id="undo-btn" class="secondary" disabled>Undo</button>
+          <button id="tie-btn" class="secondary" disabled>Tie</button>
           <button id="reset-btn" class="secondary" disabled>Reset &amp; start over</button>
         </div>
       </section>
@@ -603,7 +662,7 @@
       <div class="full-ranking-grid" id="full-ranking-grid">
         <div class="full-ranking-empty">No Pokémon ranked yet.</div>
       </div>
-    </section>
+</section>
   </div>
 
   <script>
@@ -616,6 +675,25 @@
     let musicEnabled = false;
 
     let singleUnownMode = false;
+    let singleCastformMode = false;
+    let singleDeoxysMode = false;
+    let singleBurmyMode = false;
+    let singleWormadamMode = false;
+    let singleRotomMode = false;
+    let singleArceusMode = false;
+    let singleDeerlingSawsbuckMode = false;
+    let singleGenesectMode = false;
+    let singleVivillonMode = false;
+    let singleFlabebeFloetteFlorgesMode = false;
+    let singleFurfrouMode = false;
+    let singlePumpkabooGourgeistMode = false;
+    let singleLycanrocMode = false;
+    let singleSilvallyMode = false;
+    let singleMiniorMode = false;
+    let singleAlcremieMode = false;
+    let singleSquawkabillyMode = false;
+    let megasIncludedMode = true;
+    let gMaxsIncludedMode = true;
 
     // Put YOUR icon URLs here (leave "" to just show text M / Gx)
     const MEGA_ICON_URL = "https://archives.bulbagarden.net/media/upload/b/bb/Tretta_Mega_Evolution_icon.png";
@@ -657,6 +735,9 @@
       ],
       20: [
         { pokemonName: "raticate-alola", label: "Alolan Raticate", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/20-regional-a.png" }    
+      ],
+      25: [
+        { pokemonName: "pikachu-gmax", label: "G-Max Pikachu", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/25-gmax.png" }
       ],
       26: [
         { pokemonName: "raichu-alola", label: "Alolan Raichu", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/26-regional-a.png" },
@@ -782,6 +863,9 @@
       131: [
         { pokemonName: "lapras-gmax", label: "G-Max Lapras", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/131-gmax.png" } 
       ],
+      133: [
+        { pokemonName: "eevee-gmax", label: "G-Max Eevee", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/133-gmax.png" }
+      ],
       142: [
         { pokemonName: "aerodactyl-mega", label: "Mega Aerodactyl", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/142-mega.png" } 
       ],
@@ -801,7 +885,9 @@
         { pokemonName: "Dragonite-mega", label: "Mega Dragonite", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/149-mega.png" } 
       ],
       150: [
+        { pokemonName: "mewtwo-shadow", label: "Shadow Mewtwo", primaryTypeOverride: "psychic", formKind: "special", spriteOverride: "https://archives.bulbagarden.net/media/upload/thumb/7/7a/Pokk%C3%A9n_Shadow_Mewtwo.png/184px-Pokk%C3%A9n_Shadow_Mewtwo.png" },
         { pokemonName: "mewtwo-mega-x", label: "Mega Mewtwo X", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/150-mega-x.png" } ,
+        { pokemonName: "mewtwo-shadow-mega-x", label: "Shadow Mega Mewtwo X", primaryTypeOverride: "psychic", secondaryTypeOverride: "fighting", formKind: "mega", spriteOverride: "https://archives.bulbagarden.net/media/upload/thumb/6/68/Pokk%C3%A9n_Mega_Shadow_Mewtwo_X.png/83px-Pokk%C3%A9n_Mega_Shadow_Mewtwo_X.png" },
         { pokemonName: "mewtwo-mega-y", label: "Mega Mewtwo Y", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/150-mega-y.png" }
       ],
       154: [
@@ -822,37 +908,35 @@
       199: [
         { pokemonName: "slowking-galar", label: "Galarian Slowking", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/199-regional-g.png" } 
       ],
-      if (!singleUnownMode){
-        201: [
-          { pokemonName: "unown", label: "Unown (B)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-b.png" } ,
-          { pokemonName: "unown", label: "Unown (C)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-c.png" } ,
-          { pokemonName: "unown", label: "Unown (D)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-d.png" } ,
-          { pokemonName: "unown", label: "Unown (E)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-e.png" } ,
-          { pokemonName: "unown", label: "Unown (F)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-f.png" } ,
-          { pokemonName: "unown", label: "Unown (G)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-g.png" } ,
-          { pokemonName: "unown", label: "Unown (H)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-h.png" } ,
-          { pokemonName: "unown", label: "Unown (I)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-i.png" } ,
-          { pokemonName: "unown", label: "Unown (J)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-j.png" } ,
-          { pokemonName: "unown", label: "Unown (K)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-k.png" } ,
-          { pokemonName: "unown", label: "Unown (L)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-l.png" } ,
-          { pokemonName: "unown", label: "Unown (M)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-m.png" } ,
-          { pokemonName: "unown", label: "Unown (N)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-n.png" } ,
-          { pokemonName: "unown", label: "Unown (O)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-o.png" } ,
-          { pokemonName: "unown", label: "Unown (P)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-p.png" } ,
-          { pokemonName: "unown", label: "Unown (Q)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-q.png" } ,
-          { pokemonName: "unown", label: "Unown (R)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-r.png" } ,
-          { pokemonName: "unown", label: "Unown (S)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-s.png" } ,
-          { pokemonName: "unown", label: "Unown (T)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-t.png" } ,
-          { pokemonName: "unown", label: "Unown (U)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-u.png" } ,
-          { pokemonName: "unown", label: "Unown (V)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-v.png" } ,
-          { pokemonName: "unown", label: "Unown (W)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-w.png" } ,
-          { pokemonName: "unown", label: "Unown (X)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-x.png" } ,
-          { pokemonName: "unown", label: "Unown (Y)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-y.png" } ,
-          { pokemonName: "unown", label: "Unown (Z)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-z.png" } ,
-          { pokemonName: "unown", label: "Unown (!)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-exclamation.png" } ,
-          { pokemonName: "unown", label: "Unown (?)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-question.png" } ,
-        ],
-          }
+      201: [
+        { pokemonName: "unown", label: "Unown (B)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-b.png" } ,
+        { pokemonName: "unown", label: "Unown (C)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-c.png" } ,
+        { pokemonName: "unown", label: "Unown (D)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-d.png" } ,
+        { pokemonName: "unown", label: "Unown (E)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-e.png" } ,
+        { pokemonName: "unown", label: "Unown (F)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-f.png" } ,
+        { pokemonName: "unown", label: "Unown (G)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-g.png" } ,
+        { pokemonName: "unown", label: "Unown (H)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-h.png" } ,
+        { pokemonName: "unown", label: "Unown (I)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-i.png" } ,
+        { pokemonName: "unown", label: "Unown (J)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-j.png" } ,
+        { pokemonName: "unown", label: "Unown (K)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-k.png" } ,
+        { pokemonName: "unown", label: "Unown (L)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-l.png" } ,
+        { pokemonName: "unown", label: "Unown (M)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-m.png" } ,
+        { pokemonName: "unown", label: "Unown (N)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-n.png" } ,
+        { pokemonName: "unown", label: "Unown (O)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-o.png" } ,
+        { pokemonName: "unown", label: "Unown (P)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-p.png" } ,
+        { pokemonName: "unown", label: "Unown (Q)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-q.png" } ,
+        { pokemonName: "unown", label: "Unown (R)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-r.png" } ,
+        { pokemonName: "unown", label: "Unown (S)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-s.png" } ,
+        { pokemonName: "unown", label: "Unown (T)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-t.png" } ,
+        { pokemonName: "unown", label: "Unown (U)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-u.png" } ,
+        { pokemonName: "unown", label: "Unown (V)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-v.png" } ,
+        { pokemonName: "unown", label: "Unown (W)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-w.png" } ,
+        { pokemonName: "unown", label: "Unown (X)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-x.png" } ,
+        { pokemonName: "unown", label: "Unown (Y)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-y.png" } ,
+        { pokemonName: "unown", label: "Unown (Z)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-z.png" } ,
+        { pokemonName: "unown", label: "Unown (!)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-exclamation.png" } ,
+        { pokemonName: "unown", label: "Unown (?)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-question.png" } ,
+      ],
       208: [
         { pokemonName: "steelix-mega", label: "Mega Steelix", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/208-mega.png" } 
       ],
@@ -1232,12 +1316,12 @@
         { pokemonName: "goodra-hisui", label: "Hisuian Goodra", formKind: "regional", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/706-regional-h.png" }
       ],
       710: [
-        { pokemonName: "pumpkaboo-average", label: "Pumpkaboo (Average Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-average.png" },
+        { pokemonName: "pumpkaboo-small", label: "Pumpkaboo (Small Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-average.png" },
         { pokemonName: "pumpkaboo-large", label: "Pumpkaboo (Large Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-large.png" },
         { pokemonName: "pumpkaboo-super", label: "Pumpkaboo (Super Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-super.png" }
       ],
       711: [
-        { pokemonName: "gourgeist-average", label: "Gourgeist (Average Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-average.png" },
+        { pokemonName: "gourgeist-small", label: "Gourgeist (Small Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-average.png" },
         { pokemonName: "gourgeist-large", label: "Gourgeist (Large Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-large.png" },
         { pokemonName: "gourgeist-super", label: "Gourgeist (Super Size)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-super.png" }
       ],
@@ -1304,9 +1388,6 @@
         { pokemonName: "minior-indigo-meteor", label: "Minior (Indigo Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-indigo.png" },
         { pokemonName: "minior-violet-meteor", label: "Minior (Violet Core)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/774-violet.png" },
       ],
-      778: [
-        { pokemonName: "mimikyu-busted", label: "Mimikyu (Busted Forme)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/778-busted.png" }
-      ],
       780: [
         { pokemonName: "drampa-mega", label: "Mega Drampa", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/780-mega.png" }
       ],
@@ -1316,12 +1397,12 @@
         { pokemonName: "necrozma-ultra", label: "Ultra Necroma", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/800-ultra.png" }
       ],
       801: [
-        { pokemonName: "magearna-mega", label: "Mega Magearna", formKind: "mega", spriteOverride: "https://www.serebii.net/legendsz-a/pokemon/801-m.png" },
+        { pokemonName: "magearna", label: "Mega Magearna", formKind: "mega", spriteOverride: "https://www.serebii.net/legendsz-a/pokemon/801-m.png" },
         { pokemonName: "magearna-original", label: "Magearna (Original Color)", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/801-original.png" },
-        { pokemonName: "magearna-mega", label: "Mega Magearna (Original Color)", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/801-mega-original.png" }
+        { pokemonName: "magearna-original", label: "Mega Magearna (Original Color)", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/801-mega-original.png" }
       ],
       807: [
-        { pokemonName: "zeraora-mega", label: "Mega Zeraora", formKind: "mega", spriteOverride: "https://www.serebii.net/legendsz-a/pokemon/807-m.png" }
+        { pokemonName: "zeraora-mega", label: "Mega Zeraora", primaryTypeOverride: "electric", formKind: "mega", spriteOverride: "https://www.serebii.net/legendsz-a/pokemon/807-m.png" }
       ],
       809: [
         { pokemonName: "melmetal-gmax", label: "G-Max Melmetal", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/render/809-gmax.png" }
@@ -1464,7 +1545,7 @@
       892: [
         { pokemonName: "urshifu-single-strike-gmax", label: "G-Max Single Strike Urshifu", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/892-single-strike-gmax.png" },
         { pokemonName: "urshifu-rapid-strike", label: "Rapid Strike Urshifu", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/892-rapid-strike.png" },
-        { pokemonName: "urshifu-rapid-strike-gmax", label: "G-Max Rapid Strike Urshifu", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/892-rapid-strike-gmax.png" }
+        { pokemonName: "urshifu-rapid-strike-gmax", label: "G-Max Rapid Strike Urshifu", formKind: "gmax", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/892-rapid-strike-gmax.png" }
       ],
       893: [
         { pokemonName: "zarude-dada", label: "Dada Zarude", formKind: "special", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/893-dada.png" }
@@ -1513,7 +1594,7 @@
         { pokemonName: "dudunsparce-three-segment", label: "Dudunsparce (Three Segment)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/982-three-segment.png" }
       ],
       998: [
-        { pokemonName: "baxcalibur-mega", label: "Mega Baxcalibur", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/998-mega.png" }
+        { pokemonName: "baxcalibur", label: "Mega Baxcalibur", formKind: "mega", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/998-mega.png" }
       ],
       999: [
         { pokemonName: "gimmighoul-roaming", label: "Gimmighoul (Roaming Form)", formKind: "variant", spriteOverride: "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/999-roaming.png" }
@@ -1561,21 +1642,693 @@
 
     // Each entry = { dexId, pokemonName, displayName?, isForm, formKind? }
     let allEntries = [];
+    let baseEntries = []; // unfiltered/unordered master list
+
+    // ordering modes: national | families | staged | random
+    let orderingMode = "national";
+
+    // Custom family ordering (used by "Ordered Families" mode).
+    // Edit/extend this list to control exact family + within-family order.
+    // Notes:
+    // - Use PokéAPI-style slugs (lowercase, hyphens). Spaces/apostrophes will be normalized.
+    // - Regional/alternate forms are automatically placed right after their base form
+    //   (e.g., vulpix, vulpix-alola, ninetales, ninetales-alola) as long as they share the same National Dex number.
+    const ORDERED_FAMILIES_GROUPS = [
+      ["bulbasaur","ivysaur","venusaur"],
+      ["charmander","charmeleon","charizard"],
+      ["squirtle","wartortle","blastoise"],
+      ["caterpie","metapod","butterfree"],
+      ["weedle","kakuna","beedrill"],
+      ["pidgey","pidgeotto","pidgeot"],
+      ["rattata","raticate"],
+      ["spearow","fearow"],
+      ["ekans","arbok"],
+      ["pichu","pikachu","raichu"],
+      ["sandshrew","sandslash"],
+      ["nidoran-f","nidorina","nidoqueen"],
+      ["nidoran-m","nidorino","nidoking"],
+      ["cleffa","clefairy","clefable"],
+      ["vulpix","ninetales"],
+      ["igglybuff","jigglypuff","wigglytuff"],
+      ["zubat","golbat","crobat"],
+      ["oddish","gloom","vileplume","bellossom"],
+      ["paras","parasect"],
+      ["venonat","venomoth"],
+      ["diglett","dugtrio"],
+      ["meowth","persian","perrserker"],
+      ["psyduck","golduck"],
+      ["mankey","primeape","annihilape"],
+      ["growlithe","arcanine"],
+      ["poliwag","poliwhirl","poliwrath","politoed"],
+      ["abra","kadabra","alakazam"],
+      ["machop","machoke","machamp"],
+      ["bellsprout","weepinbell","victreebel"],
+      ["tentacool","tentacruel"],
+      ["geodude","graveler","golem"],
+      ["ponyta","rapidash"],
+      ["slowpoke","slowbro","slowking"],
+      ["magnemite","magneton","magnezone"],
+      ["farfetchd","sirfetchd"],
+      ["doduo","dodrio"],
+      ["seel","dewgong"],
+      ["grimer","muk"],
+      ["shellder","cloyster"],
+      ["gastly","haunter","gengar"],
+      ["onix","steelix"],
+      ["drowzee","hypno"],
+      ["krabby","kingler"],
+      ["voltorb","electrode"],
+      ["exeggcute","exeggutor"],
+      ["cubone","marowak"],
+      ["tyrogue","hitmonlee","hitmonchan","hitmontop"],
+      ["lickitung","lickilicky"],
+      ["koffing","weezing"],
+      ["rhyhorn","rhydon","rhyperior"],
+      ["happiny","chansey","blissey"],
+      ["tangela","tangrowth"],
+      ["kangaskhan"],
+      ["horsea","seadra","kingdra"],
+      ["goldeen","seaking"],
+      ["staryu","starmie"],
+      ["mime-jr","mr-mime","mr-rime"],
+      ["scyther","scizor","kleavor"],
+      ["smoochum","jynx"],
+      ["elekid","electabuzz","electivire"],
+      ["magby","magmar","magmortar"],
+      ["pinsir"],
+      ["tauros"],
+      ["magikarp","gyarados"],
+      ["lapras"],
+      ["ditto"],
+      ["eevee","vaporeon","jolteon","flareon","espeon","umbreon","leafeon","glaceon","sylveon"],
+      ["porygon","porygon2","porygon-z"],
+      ["omanyte","omastar"],
+      ["kabuto","kabutops"],
+      ["aerodactyl"],
+      ["munchlax","snorlax"],
+      ["articuno"],
+      ["zapdos"],
+      ["moltres"],
+      ["dratini","dragonair","dragonite"],
+      ["mewtwo"],
+      ["mew"],
+      ["chikorita","bayleef","meganium"],
+      ["cyndaquil","quilava","typhlosion"],
+      ["totodile","croconaw","feraligatr"],
+      ["sentret","furret"],
+      ["hoothoot","noctowl"],
+      ["ledyba","ledian"],
+      ["spinarak","ariados"],
+      ["chinchou","lanturn"],
+      ["togepi","togetic","togekiss"],
+      ["natu","xatu"],
+      ["mareep","flaaffy","ampharos"],
+      ["azurill","marill","azumarill"],
+      ["bonsly","sudowoodo"],
+      ["hoppip","skiploom","jumpluff"],
+      ["aipom","ambipom"],
+      ["sunkern","sunflora"],
+      ["yanma","yanmega"],
+      ["wooper","quagsire","clodsire"],
+      ["murkrow","honchkrow"],
+      ["misdreavus","mismagius"],
+      ["unown"],
+      ["wynaut","wobbuffet"],
+      ["girafarig","farigiraf"],
+      ["pineco","forretress"],
+      ["dunsparce","dudunsparce-two-segment"],
+      ["gligar","gliscor"],
+      ["snubbull","granbull"],
+      ["qwilfish","overqwil"],
+      ["shuckle"],
+      ["heracross"],
+      ["sneasel","weavile","sneasler"],
+      ["teddiursa","ursaring","ursaluna"],
+      ["slugma","magcargo"],
+      ["swinub","piloswine","mamoswine"],
+      ["corsola","cursola"],
+      ["remoraid","octillery"],
+      ["delibird"],
+      ["mantyke","mantine"],
+      ["skarmory"],
+      ["houndour","houndoom"],
+      ["phanpy","donphan"],
+      ["stantler","wyrdeer"],
+      ["smeargle"],
+      ["miltank"],
+      ["raikou"],
+      ["entei"],
+      ["suicune"],
+      ["larvitar","pupitar","tyranitar"],
+      ["lugia"],
+      ["ho-oh"],
+      ["celebi"],
+      ["treecko","grovyle","sceptile"],
+      ["torchic","combusken","blaziken"],
+      ["Mudkip","marshtomp","swampert"],
+      ["poochyena","mightyena"],
+      ["zigzagoon","linoone","obstagoon"],
+      ["wurmple","silcoon","beautifly","cascoon","dustox"],
+      ["lotad","lombre","ludicolo"],
+      ["seedot","nuzleaf","shiftry"],
+      ["taillow","swellow"],
+      ["wingull","pelipper"],
+      ["ralts","kirlia","gardevoir","gallade"],
+      ["surskit","masquerain"],
+      ["shroomish","breloom"],
+      ["slakoth","vigoroth","slaking"],
+      ["nincada","ninjask","shedinja"],
+      ["whismur","loudred","exploud"],
+      ["makuhita","hariyama"],
+      ["nosepass","probopass"],
+      ["skitty","delcatty"],
+      ["sableye"],
+      ["mawile"],
+      ["aron","lairon","aggron"],
+      ["meditite","medicham"],
+      ["electrike","manectric"],
+      ["plusle"],
+      ["minun"],
+      ["volbeat"],
+      ["illumise"],
+      ["budew","roselia","roserade"],
+      ["gulpin","swalot"],
+      ["carvanha","sharpedo"],
+      ["wailmer","wailord"],
+      ["numel","camerupt"],
+      ["torkoal"],
+      ["spoink","grumpig"],
+      ["spinda"],
+      ["trapinch","vibrava","flygon"],
+      ["cacnea","cacturne"],
+      ["swablu","altaria"],
+      ["zangoose"],
+      ["seviper"],
+      ["lunatone"],
+      ["solrock"],
+      ["barboach","whiscash"],
+      ["corphish","crawdaunt"],
+      ["baltoy","claydol"],
+      ["lileep","cradily"],
+      ["anorith","armaldo"],
+      ["feebas","milotic"],
+      ["castform"],
+      ["kecleon"],
+      ["shuppet","banette"],
+      ["duskull","dusclops","dusknoir"],
+      ["tropius"],
+      ["chingling","chimecho"],
+      ["absol"],
+      ["snorunt","glalie","froslass"],
+      ["spheal","sealeo","walrein"],
+      ["clamperl","huntail","gorebyss"],
+      ["relicanth"],
+      ["luvdisc"],
+      ["bagon","shelgon","salamence"],
+      ["beldum","metang","metagross"],
+      ["regirock"],
+      ["regice"],
+      ["registeel"],
+      ["latios"],
+      ["latias"],
+      ["kyogre"],
+      ["groudon"],
+      ["rayquaza"],
+      ["jirachi"],
+      ["deoxys-normal"],
+      ["turtwig","grotle","torterra"],
+      ["chimchar","monferno","infernape"],
+      ["piplup","prinplup","empoleon"],
+      ["starly","staravia","staraptor"],
+      ["bidoof","bibarel"],
+      ["kricketot","kricketune"],
+      ["shinx","luxio","luxray"],
+      ["cranidos","rampardos"],
+      ["shieldon","bastiodon"],
+      ["burmy","wormadam-plant","mothim"],
+      ["combee","vespiquen"],
+      ["pachirisu"],
+      ["buizel","floatzel"],
+      ["cherubi","cherrim"],
+      ["shellos","gastrodon"],
+      ["drifloon","drifblim"],
+      ["buneary","lopunny"],
+      ["glameow","purugly"],
+      ["stunky","skuntank"],
+      ["bronzor","bronzong"],
+      ["chatot"],
+      ["spiritomb"],
+      ["gible","gabite","garchomp"],
+      ["riolu","lucario"],
+      ["hippopotas","hippowdon"],
+      ["skorupi","drapion"],
+      ["croagunk","toxicroak"],
+      ["carnivine"],
+      ["finneon","lumineon"],
+      ["snover","abomasnow"],
+      ["rotom"],
+      ["uxie"],
+      ["mesprit"],
+      ["azelf"],
+      ["dialga"],
+      ["palkia"],
+      ["heatran"],
+      ["regigigas"],
+      ["giratina-altered"],
+      ["cresselia"],
+      ["phione","manaphy"],
+      ["darkrai"],
+      ["shaymin-land"],
+      ["arceus"],
+      ["victini"],
+      ["snivy","servine","serperior"],
+      ["tepig","pignite","emboar"],
+      ["oshawott","dewott","samurott"],
+      ["patrat","watchog"],
+      ["lillipup","herdier","stoutland"],
+      ["purrloin","liepard"],
+      ["pansage","simisage"],
+      ["pansear","simisear"],
+      ["panpour","simipour"],
+      ["munna","musharna"],
+      ["pidove","tranquill","unfezant"],
+      ["blitzle","zebstrika"],
+      ["roggenrola","boldore","gigalith"],
+      ["woobat","swoobat"],
+      ["drilbur","excadrill"],
+      ["audino"],
+      ["timburr","gurdurr","conkeldurr"],
+      ["tympole","palpitoad","seismitoad"],
+      ["throh"],
+      ["sawk"],
+      ["sewaddle","swadloon","leavanny"],
+      ["venipede","whirlipede","scolipede"],
+      ["cottonee","whimsicott"],
+      ["petilil","lilligant"],
+      ["basculin-red-striped","basculegion-male"],
+      ["sandile","krokorok","krookodile"],
+      ["darumaka","darmanitan-standard"],
+      ["maractus"],
+      ["dwebble","crustle"],
+      ["scraggy","scrafty"],
+      ["sigilyph"],
+      ["yamask","cofagrigus","runerigus"],
+      ["tirtouga","carracosta"],
+      ["archen","archeops"],
+      ["trubbish","garbodor"],
+      ["zorua","zoroark"],
+      ["minccino","cinccino"],
+      ["gothita","gothorita","gothitelle"],
+      ["solosis","duosion","reuniclus"],
+      ["ducklett","swanna"],
+      ["vanillite","vanillish","vanilluxe"],
+      ["deerling","sawsbuck"],
+      ["emolga"],
+      ["karrablast","escavalier"],
+      ["foongus","amoonguss"],
+      ["frillish","jellicent"],
+      ["alomomola"],
+      ["joltik","galvantula"],
+      ["ferroseed","ferrothorn"],
+      ["klink","klang","klinklang"],
+      ["tynamo","eelektrik","eelektross"],
+      ["elgyem","beheeyem"],
+      ["litwick","lampent","chandelure"],
+      ["axew","fraxure","haxorus"],
+      ["cubchoo","beartic"],
+      ["cryogonal"],
+      ["shelmet","accelgor"],
+      ["stunfisk"],
+      ["mienfoo","mienshao"],
+      ["druddigon"],
+      ["golett","golurk"],
+      ["pawniard","bisharp","kingambit"],
+      ["bouffalant"],
+      ["rufflet","braviary"],
+      ["vullaby","mandibuzz"],
+      ["heatmor"],
+      ["durant"],
+      ["deino","zweilous","hydreigon"],
+      ["larvesta","volcarona"],
+      ["cobalion"],
+      ["terrakion"],
+      ["virizion"],
+      ["tornadus-incarnate"],
+      ["thundurus-incarnate"],
+      ["reshiram"],
+      ["zekrom"],
+      ["landorus-incarnate"],
+      ["kyurem"],
+      ["keldeo-ordinary"],
+      ["meloetta-aria"],
+      ["genesect"],
+      ["chespin","quilladin","chesnaught"],
+      ["fennekin","braixen","delphox"],
+      ["froakie","frogadier","greninja"],
+      ["bunnelby","diggersby"],
+      ["fletchling","fletchinder","talonflame"],
+      ["scatterbug","spewpa","vivillon"],
+      ["litleo","pyroar"],
+      ["flabebe","floette","florges"],
+      ["skiddo","gogoat"],
+      ["pancham","pangoro"],
+      ["furfrou"],
+      ["espurr","meowstic-male"],
+      ["honedge","doublade","aegislash-shield"],
+      ["spritzee","aromatisse"],
+      ["swirlix","slurpuff"],
+      ["inkay","malamar"],
+      ["binacle","barbaracle"],
+      ["skrelp","dragalge"],
+      ["clauncher","clawitzer"],
+      ["helioptile","heliolisk"],
+      ["tyrunt","tyrantrum"],
+      ["amaura","aurorus"],
+      ["hawlucha"],
+      ["dedenne"],
+      ["carbink"],
+      ["goomy","sliggoo","goodra"],
+      ["klefki"],
+      ["phantump","trevenant"],
+      ["pumpkaboo-average","gourgeist-average"],
+      ["bergmite","avalugg"],
+      ["noibat","noivern"],
+      ["xerneas"],
+      ["yveltal"],
+      ["zygarde-10"],
+      ["diancie"],
+      ["hoopa"],
+      ["volcanion"],
+      ["rowlet","dartrix","decidueye"],
+      ["litten","torracat","incineroar"],
+      ["popplio","brionne","primarina"],
+      ["pikipek","trumbeak","toucannon"],
+      ["yungoos","gumshoos"],
+      ["grubbin","charjabug","vikavolt"],
+      ["crabrawler","crabominable"],
+      ["oricorio-baile"],
+      ["cutiefly","ribombee"],
+      ["rockruff","lycanroc-midday"],
+      ["wishiwashi-solo"],
+      ["mareanie","toxapex"],
+      ["mudbray","mudsdale"],
+      ["dewpider","araquanid"],
+      ["fomantis","lurantis"],
+      ["morelull","shiinotic"],
+      ["salandit","salazzle"],
+      ["stufful","bewear"],
+      ["bounsweet","steenee","tsareena"],
+      ["comfey"],
+      ["oranguru"],
+      ["passimian"],
+      ["wimpod","golisopod"],
+      ["sandygast","palossand"],
+      ["pyukumuku"],
+      ["type-null","silvally-normal"],
+      ["minior-red-meteor"],
+      ["komala"],
+      ["turtonator"],
+      ["togedemaru"],
+      ["mimikyu-disguised"],
+      ["bruxish"],
+      ["drampa"],
+      ["dhelmise"],
+      ["jangmo-o","hakamo-o","kommo-o"],
+      ["tapu-koko"],
+      ["tapu-lele"],
+      ["tapu-bulu"],
+      ["tapu-fini"],
+      ["cosmog","cosmoem","solgaleo","lunala"],
+      ["nihilego"],
+      ["buzzwole"],
+      ["pheromosa"],
+      ["xurkitree"],
+      ["celesteela"],
+      ["kartana"],
+      ["guzzlord"],
+      ["necrozma"],
+      ["magearna"],
+      ["marshadow"],
+      ["poipole","naganadel"],
+      ["stakataka"],
+      ["blacephalon"],
+      ["zeraora"],
+      ["meltan","melmetal"],
+      ["grookey","thwackey","rillaboom"],
+      ["scorbunny","raboot","cinderace"],
+      ["sobble","drizzile","inteleon"],
+      ["skwovet","greedent"],
+      ["rookidee","corvisquire","corviknight"],
+      ["blipbug","dottler","orbeetle"],
+      ["nickit","thievul"],
+      ["gossifleur","eldegoss"],
+      ["wooloo","dubwool"],
+      ["chewtle","drednaw"],
+      ["yamper","boltund"],
+      ["rolycoly","carkol","coalossal"],
+      ["applin","flapple","appletun","dipplin","hydrapple"],
+      ["silicobra","sandaconda"],
+      ["cramorant"],
+      ["arrokuda","barraskewda"],
+      ["toxel","toxtricity-low-key"],
+      ["sizzlipede","centiskorch"],
+      ["clobbopus","grapploct"],
+      ["sinistea","polteageist"],
+      ["hatenna","hattrem","hatterene"],
+      ["impidimp","morgrem","grimmsnarl"],
+      ["milcery","alcremie"],
+      ["falinks"],
+      ["pincurchin"],
+      ["snom","frosmoth"],
+      ["stonjourner"],
+      ["eiscue-ice"],
+      ["indeedee-male"],
+      ["morpeko-full-belly"],
+      ["cufant","copperajah"],
+      ["dracozolt"],
+      ["arctozolt"],
+      ["dracovish"],
+      ["arctovish"],
+      ["duraludon","archaludon"],
+      ["dreepy","drakloak","dragapult"],
+      ["zacian"],
+      ["zamazenta"],
+      ["eternatus"],
+      ["kubfu","urshifu-single-strike"],
+      ["zarude"],
+      ["regieleki"],
+      ["regidrago"],
+      ["glastrier"],
+      ["spectrier"],
+      ["calyrex"],
+      ["enamorus-incarnate"],
+      ["sprigatito","floragato","meowscarada"],
+      ["fuecoco","crocalor","skeledirge"],
+      ["quaxly","quaxwell","quaquaval"],
+      ["lechonk","oinkologne-male"],
+      ["tarountula","spidops"],
+      ["nymble","lokix"],
+      ["pawmi","pawmo","pawmot"],        
+      ["tandemaus","maushold-family-of-three"],
+      ["fidough","dachsbun"],
+      ["smoliv","dolliv","arboliva"],
+      ["squawkabilly-green-plumage"],
+      ["nacli","naclstack","garganacl"],
+      ["charcadet","armarouge","ceruledge"],
+      ["tadbulb","bellibolt"],
+      ["wattrel","Kilowattrel"],
+      ["maschiff","mabosstiff"],
+      ["shroodle","grafaiai"],
+      ["bramblin","brambleghast"],
+      ["toedscool","toedscruel"],
+      ["klawf"],
+      ["capsakid","scovillain"],
+      ["rellor","rabsca"],
+      ["flittle","espathra"],
+      ["tinkatink","tinkatuff","tinkaton"],
+      ["wiglett","wugtrio"],
+      ["bombirdier"],
+      ["finizen","palafin-zero"],
+      ["varoom","revavroom"],
+      ["cyclizar"],
+      ["orthworm"],
+      ["glimmet","glimmora"],
+      ["greavard","houndstone"],
+      ["flamigo"],
+      ["cetoddle","cetitan"],
+      ["veluza"],
+      ["dondozo"],
+      ["tatsugiri-curly"],
+      ["great-tusk"],
+      ["scream-tail"],
+      ["brute-bonnet"],
+      ["flutter-mane"],
+      ["slither-wing"],
+      ["sandy-shocks"],
+      ["iron-treads"],
+      ["iron-bundle"],
+      ["iron-hands"],
+      ["iron-jugulis"],
+      ["iron-moth"],
+      ["iron-thorns"],
+      ["frigibax","arctibax","baxcalibur"],
+      ["gimmighoul","gholdengo"],
+      ["wo-chien"],
+      ["chien-pao"],
+      ["ting-lu"],
+      ["chi-yu"],
+      ["roaring-moon"],
+      ["iron-valiant"],
+      ["koraidon"],
+      ["miraidon"],
+      ["walking-wake"],
+      ["iron-leaves"],
+      ["poltchageist","sinistcha"],
+      ["okidogi"],
+      ["munkidori"],
+      ["fezandipiti"],
+      ["ogerpon"],
+      ["gouging-fire"],
+      ["raging-bolt"],
+      ["iron-boulder"],
+      ["iron-crown"],
+      ["terapagos"],
+      ["pecharunt"]
+    ];
 
     let ranking = [];              // array of indices into allEntries
     let currentInsertIndex = null; // index into allEntries
     let compareRankPos = null;     // index into ranking
     let mode = "idle";             // "idle" | "initial" | "inserting" | "done"
 
+// Tie groups:
+// entryIndex (into allEntries) -> tieGroupId (number). Entries with the same tieGroupId are treated as a block.
+let tieGroupByEntry = {};
+let nextTieGroupId = 1;
+
+// Undo stack: snapshots of state before each user action.
+let actionHistory = []; // array of { ranking, currentInsertIndex, compareRankPos, mode, tieGroupByEntry, nextTieGroupId }
+const MAX_HISTORY = 40;
+
+function cloneTieMap(map) {
+  return Object.assign({}, map || {});
+}
+
+function pushHistorySnapshot() {
+  actionHistory.push({
+    ranking: ranking.slice(),
+    currentInsertIndex,
+    compareRankPos,
+    mode,
+    tieGroupByEntry: cloneTieMap(tieGroupByEntry),
+    nextTieGroupId
+  });
+  if (actionHistory.length > MAX_HISTORY) actionHistory.shift();
+  undoBtn.disabled = actionHistory.length === 0;
+}
+
+function restoreSnapshot(snap) {
+  ranking = Array.isArray(snap.ranking) ? snap.ranking.slice() : [];
+  currentInsertIndex =
+    typeof snap.currentInsertIndex === "number" ? snap.currentInsertIndex : null;
+  compareRankPos =
+    typeof snap.compareRankPos === "number" ? snap.compareRankPos : null;
+  mode = snap.mode || "idle";
+  tieGroupByEntry = cloneTieMap(snap.tieGroupByEntry);
+  nextTieGroupId = typeof snap.nextTieGroupId === "number" ? snap.nextTieGroupId : 1;
+}
+
+function getGroupIdForEntry(entryIndex) {
+  const gid = tieGroupByEntry[String(entryIndex)];
+  return typeof gid === "number" ? gid : null;
+}
+
+function getGroupStartPos(pos) {
+  if (pos === null || pos <= 0) return pos;
+  const curEntry = ranking[pos];
+  const gid = getGroupIdForEntry(curEntry);
+  if (!gid) return pos;
+  let p = pos;
+  while (p > 0) {
+    const prevEntry = ranking[p - 1];
+    if (getGroupIdForEntry(prevEntry) !== gid) break;
+    p--;
+  }
+  return p;
+}
+
+function getGroupEndPos(pos) {
+  if (pos === null || pos >= ranking.length - 1) return pos;
+  const curEntry = ranking[pos];
+  const gid = getGroupIdForEntry(curEntry);
+  if (!gid) return pos;
+  let p = pos;
+  while (p < ranking.length - 1) {
+    const nextEntry = ranking[p + 1];
+    if (getGroupIdForEntry(nextEntry) !== gid) break;
+    p++;
+  }
+  return p;
+}
+
+function ensureGroupForEntries(aEntryIndex, bEntryIndex) {
+  const aG = getGroupIdForEntry(aEntryIndex);
+  const bG = getGroupIdForEntry(bEntryIndex);
+  if (aG && bG) {
+    const keep = Math.min(aG, bG);
+    const drop = Math.max(aG, bG);
+    Object.keys(tieGroupByEntry).forEach((k) => {
+      if (tieGroupByEntry[k] === drop) tieGroupByEntry[k] = keep;
+    });
+    return keep;
+  }
+  if (aG) {
+    tieGroupByEntry[String(bEntryIndex)] = aG;
+    return aG;
+  }
+  if (bG) {
+    tieGroupByEntry[String(aEntryIndex)] = bG;
+    return bG;
+  }
+  const gid = nextTieGroupId++;
+  tieGroupByEntry[String(aEntryIndex)] = gid;
+  tieGroupByEntry[String(bEntryIndex)] = gid;
+  return gid;
+}
+
+function undoLastAction() {
+  if (actionHistory.length === 0) return;
+  const snap = actionHistory.pop();
+  restoreSnapshot(snap);
+  updateRankingUI();
+
+  if (mode === "initial") {
+    statusMain.textContent = "Round 1: Pick between Bulbasaur and Ivysaur.";
+    compareTitle.textContent = "Which do you like more to start?";
+    setCardContent("left", 0);
+    setCardContent("right", 1);
+    updateButtonsEnabled(true);
+  } else if (mode === "inserting") {
+    updateInsertionStatusTexts();
+    showCurrentComparison();
+    updateButtonsEnabled(true);
+  } else {
+    updateButtonsEnabled(false);
+  }
+
+  log("Undid your last action.");
+  saveState();
+}
+
     // pokemonName -> { sprite, primaryType, secondaryType }
     const pokemonInfoCache = {};
 
     // --- UI ELEMENTS ---
 
-    const statusMain = document.getElementById("status-main");
-    const statusProgress = document.getElementById("status-progress");
+    const statusMain = { textContent: "" };
     const startBtn = document.getElementById("start-btn");
-    const skipBtn = document.getElementById("skip-btn");
+    const undoBtn = document.getElementById("undo-btn");
+    const tieBtn = document.getElementById("tie-btn");
     const resetBtn = document.getElementById("reset-btn");
     const compareTitle = document.getElementById("compare-title");
 
@@ -1591,11 +2344,31 @@
     const imgPlaceholderRight = document.getElementById("img-placeholder-right");
     const btnRight = document.getElementById("btn-right");
 
+    // Click the sprite itself to play that Pokémon's cry
+    imgLeft.style.cursor = "pointer";
+    imgRight.style.cursor = "pointer";
+
+    imgLeft.addEventListener("click", (e) => {
+      const idx = parseInt(imgLeft.dataset.entryIndex, 10);
+      if (!Number.isFinite(idx)) return;
+      playCryForEntry(allEntries[idx]);
+    });
+
+    imgRight.addEventListener("click", (e) => {
+      const idx = parseInt(imgRight.dataset.entryIndex, 10);
+      if (!Number.isFinite(idx)) return;
+      playCryForEntry(allEntries[idx]);
+    });
+
+    const bulbaLeft = document.getElementById("bulba-left");
+    const bulbaRight = document.getElementById("bulba-right");
+
     const rankingUl = document.getElementById("ranking-ul");
     const favoriteLine = document.getElementById("favorite-line");
     const logBox = document.getElementById("log-box");
 
     const fullRankingGrid = document.getElementById("full-ranking-grid");
+    const secondaryRankingGrid = document.getElementById("secondary-ranking-grid");
 
     // --- HELPERS ---
 
@@ -1611,7 +2384,62 @@
       return niceName(entry.pokemonName);
     }
 
-    function log(message) {
+    
+    function bulbapediaUrlForEntry(entry) {
+      // Use Bulbapedia's search so forms like "Deoxys (Attack Forme)" still resolve nicely.
+      const q = fullDisplayName(entry);
+      return "https://bulbapedia.bulbagarden.net/wiki/Special:Search?search=" + encodeURIComponent(q);
+    }
+
+
+    // --- Pokémon cry playback (click the sprite) ---
+    const cryAudio = new Audio();
+    cryAudio.preload = "none";
+    const cryUrlCache = new Map(); // pokemonName -> url (or null)
+
+    async function getCryUrl(pokemonName) {
+      if (!pokemonName) return null;
+      if (cryUrlCache.has(pokemonName)) return cryUrlCache.get(pokemonName);
+
+      try {
+        const res = await fetch("https://pokeapi.co/api/v2/pokemon/" + encodeURIComponent(pokemonName));
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const url =
+          (data.cries && (data.cries.latest || data.cries.legacy)) ||
+          null;
+
+        cryUrlCache.set(pokemonName, url);
+        return url;
+      } catch (err) {
+        console.warn("Failed to load cry for", pokemonName, err);
+        cryUrlCache.set(pokemonName, null);
+        return null;
+      }
+    }
+
+    async function playCryForEntry(entry) {
+      if (!entry) return;
+      const url = await getCryUrl(entry.pokemonName);
+      if (!url) return;
+
+      try {
+        cryAudio.pause();
+        cryAudio.currentTime = 0;
+        cryAudio.src = url;
+
+        // Match the slider volume (same one used for music)
+        const vol = parseInt(volumeSlider.value, 10);
+        cryAudio.volume = Number.isFinite(vol) ? Math.max(0, Math.min(1, vol / 100)) : 0.5;
+
+        await cryAudio.play();
+      } catch (err) {
+        // Autoplay restrictions can block this sometimes; user click should usually allow it.
+        console.warn("Cry playback failed:", err);
+      }
+    }
+
+function log(message) {
       const p = document.createElement("p");
       p.textContent = message;
       logBox.appendChild(p);
@@ -1682,17 +2510,39 @@
         emptyDiv.className = "full-ranking-empty";
         emptyDiv.textContent = "No Pokémon ranked yet.";
         fullRankingGrid.appendChild(emptyDiv);
+
+const emptyDiv2 = document.createElement("div");
+        emptyDiv2.className = "full-ranking-empty";
+        emptyDiv2.textContent = "Nothing here yet.";
         return;
       }
 
       const topDisplay = ranking.slice(0, 15);
+
+      // Compute displayed rank numbers that respect adjacent tie blocks.
+      function displayedRankForPos(pos) {
+        let rankNum = 0;
+        let prevKey = null;
+        for (let p = 0; p <= pos && p < ranking.length; p++) {
+          const eIdx = ranking[p];
+          const g = getGroupIdForEntry(eIdx);
+          const key = g ? ("g:" + g) : ("u:" + eIdx);
+          if (p === 0) {
+            rankNum = 1;
+          } else if (key !== prevKey) {
+            rankNum++;
+          }
+          prevKey = key;
+        }
+        return rankNum;
+      }
       topDisplay.forEach((entryIndex, i) => {
         const entry = allEntries[entryIndex];
         const li = document.createElement("li");
 
         const spanNum = document.createElement("span");
         spanNum.className = "rank-num";
-        spanNum.textContent = "#" + (i + 1);
+        spanNum.textContent = "#" + displayedRankForPos(i);
 
         const spanName = document.createElement("span");
         spanName.className = "rank-name";
@@ -1720,8 +2570,7 @@
         const tile = document.createElement("div");
         tile.className = "ball-tile";
         tile.title =
-          "#" +
-          (i + 1) +
+          "#" + displayedRankForPos(i) +
           " – " +
           fullDisplayName(entry) +
           " (No." +
@@ -1862,12 +2711,821 @@
 
         const rankLabel = document.createElement("div");
         rankLabel.className = "ball-rank";
-        rankLabel.textContent = "#" + (i + 1);
+        rankLabel.textContent = "#" + displayedRankForPos(i);
 
         tile.appendChild(shell);
         tile.appendChild(rankLabel);
         fullRankingGrid.appendChild(tile);
       });
+
+      // Secondary grid (Custom Pokédex): start with the highest-ranked Grass starter family
+      updateSecondaryRankingGrid(displayedRankForPos);
+    }
+
+    // Build the secondary grid by selecting a "seed" family from the main ranking.
+    // Current rule: pick the first (highest-ranked) member of ANY Grass starter family,
+    // then show that whole family (including any forms) in Dex order.
+    function updateSecondaryRankingGrid(displayedRankForPos) {
+      if (!secondaryRankingGrid) return;
+
+
+      // Curated Pokédex numbering: counts through the custom grid in display order.
+      // Adjacent entries that share the same National Dex ID (e.g., regional forms placed next to each other)
+      // share the same curated number.
+      let curatedDexCounter = 0;
+      let curatedLastDexId = null;
+      const setCuratedDexCounter = (newValue) => {
+        // Force the next displayed entry to start counting from (newValue + 1).
+        curatedDexCounter = Math.max(0, Number(newValue) || 0);
+        curatedLastDexId = null;
+      };
+      const nextCuratedDexLabel = (entry) => {
+        const dexId = entry?.dexId;
+        if (dexId == null) return "";
+        if (dexId !== curatedLastDexId) {
+          curatedDexCounter += 1;
+          curatedLastDexId = dexId;
+        }
+        return "#" + String(curatedDexCounter).padStart(3, "0");
+      };
+
+      // Starter families (National Dex IDs)
+      const STARTER_FAMILIES = {
+        grass: [
+          [1, 2, 3],       // Bulbasaur
+          [152, 153, 154], // Chikorita
+          [252, 253, 254], // Treecko
+          [387, 388, 389], // Turtwig
+          [495, 496, 497], // Snivy
+          [650, 651, 652], // Chespin
+          [722, 723, 724], // Rowlet
+          [810, 811, 812], // Grookey
+          [906, 907, 908], // Sprigatito
+        ],
+        fire: [
+          [4, 5, 6],       // Charmander
+          [155, 156, 157], // Cyndaquil
+          [255, 256, 257], // Torchic
+          [390, 391, 392], // Chimchar
+          [498, 499, 500], // Tepig
+          [653, 654, 655], // Fennekin
+          [725, 726, 727], // Litten
+          [813, 814, 815], // Scorbunny
+          [909, 910, 911], // Fuecoco
+        ],
+        water: [
+          [7, 8, 9],       // Squirtle
+          [158, 159, 160], // Totodile
+          [258, 259, 260], // Mudkip
+          [393, 394, 395], // Piplup
+          [501, 502, 503], // Oshawott
+          [656, 657, 658], // Froakie
+          [728, 729, 730], // Popplio
+          [816, 817, 818], // Sobble
+          [912, 913, 914], // Quaxly
+        ],
+      };
+
+      // Early-game Bug lines (National Dex IDs). Used for the Custom Pokédex.
+      // We select the highest-ranked member among these families and then display that whole family.
+      const EARLY_BUG_FAMILIES = [
+        [10, 11, 12],          // Caterpie -> Metapod -> Butterfree
+        [13, 14, 15],          // Weedle -> Kakuna -> Beedrill
+        [165, 166],            // Ledyba -> Ledian
+        [167, 168],            // Spinarak -> Ariados
+        [265, 266, 267, 268, 269], // Wurmple -> (Silcoon/Beautifly) and (Cascoon/Dustox)
+        [401, 402],            // Kricketot -> Kricketune
+        [540, 541, 542],       // Sewaddle -> Swadloon -> Leavanny
+        [543, 544, 545],       // Venipede -> Whirlipede -> Scolipede
+        [664, 665, 666],       // Scatterbug -> Spewpa -> Vivillon
+        [736, 737, 738],       // Grubbin -> Charjabug -> Vikavolt
+        [824, 825, 826],       // Blipbug -> Dottler -> Orbeetle
+        [917, 918],            // Tarountula -> Spidops
+        [919, 920],            // Nymble -> Lokix
+      ];
+
+      // Early-game Flying lines (National Dex IDs). Used for the Custom Pokédex.
+      // We select the highest-ranked members among these families and then display those whole families.
+      const EARLY_FLYING_FAMILIES = [
+        [16, 17, 18],        // Pidgey -> Pidgeotto -> Pidgeot
+        [21, 22],            // Spearow -> Fearow
+        [163, 164],          // Hoothoot -> Noctowl
+        [276, 277],          // Taillow -> Swellow
+        [278, 279],          // Wingull -> Pelipper
+        [396, 397, 398],     // Starly -> Staravia -> Staraptor
+        [519, 520, 521],     // Pidove -> Tranquill -> Unfezant
+        [661, 662, 663],     // Fletchling -> Fletchinder -> Talonflame
+        [731, 732, 733],     // Pikipek -> Trumbeak -> Toucannon
+        [821, 822, 823],     // Rookidee -> Corvisquire -> Corviknight
+        [940, 941],          // Wattrel -> Kilowattrel
+      ];
+
+// Route 1 Normal lines (National Dex IDs). Used for the Custom Pokédex.
+// We select the highest-ranked members among these families and then display those whole families.
+const ROUTE_ONE_NORMAL_FAMILIES = [
+  [19, 20],            // Rattata -> Raticate (includes regional forms via same Dex IDs)
+  [161, 162],          // Sentret -> Furret
+  [263, 264, 862],     // Zigzagoon -> Linoone -> Obstagoon
+  [399, 400],          // Bidoof -> Bibarel
+  [504, 505],          // Patrat -> Watchog
+  [659, 660],          // Bunnelby -> Diggersby
+  [734, 735],          // Yungoose -> Gumshoos
+  [819, 820],          // Skwovet -> Greedent
+  [915, 916],          // Lechonk -> Oinkologne
+];
+
+// Route 1 extra lines (National Dex IDs). Used for the Custom Pokédex.
+// We select the highest-ranked member among these families and then display that whole family.
+const ROUTE_ONE_EXTRA_FAMILIES = [
+  [261, 262],          // Poochyena -> Mightyena
+  [403, 404, 405],     // Shinx -> Luxio -> Luxray
+  [509, 510],          // Purrloin -> Liepard
+  [506, 507, 508],     // Lillipup -> Herdier -> Stoutland
+  [827, 828],          // Nickit -> Thievul
+  [831, 832],          // Wooloo -> Dubwool
+];
+
+	// Pseudo-legendary lines (National Dex IDs). Used for the Custom Pokédex.
+	// We select the two highest-ranked pseudo-legendary families and display them right
+	// before the legendary block. Their curated numbers must always be:
+	//   1st pseudo line: #445, #446, #447
+	//   2nd pseudo line: #448, #449, #450
+	const PSEUDO_LEGENDARY_FAMILIES = [
+	  [147, 148, 149],     // Dratini -> Dragonair -> Dragonite
+	  [246, 247, 248],     // Larvitar -> Pupitar -> Tyranitar
+	  [371, 372, 373],     // Bagon -> Shelgon -> Salamence
+	  [374, 375, 376],     // Beldum -> Metang -> Metagross
+	  [443, 444, 445],     // Gible -> Gabite -> Garchomp
+	  [633, 634, 635],     // Deino -> Zweilous -> Hydreigon
+	  [704, 705, 706],     // Goomy -> Sliggoo -> Goodra
+	  [782, 783, 784],     // Jangmo-o -> Hakamo-o -> Kommo-o
+	  [885, 886, 887],     // Dreepy -> Drakloak -> Dragapult
+	  [996, 997, 998],     // Frigibax -> Arctibax -> Baxcalibur
+	];
+
+	const familyForPseudoLegendary = (dexId) => {
+	  for (const fam of PSEUDO_LEGENDARY_FAMILIES) {
+	    if (fam.includes(dexId)) return fam;
+	  }
+	  return null;
+	};
+
+const familyForRouteOneExtra = (dexId) => {
+  for (const fam of ROUTE_ONE_EXTRA_FAMILIES) {
+    if (fam.includes(dexId)) return fam;
+  }
+  return null;
+};
+
+
+
+      const familyForFlying = (dexId) => {
+        for (const fam of EARLY_FLYING_FAMILIES) {
+          if (fam.includes(dexId)) return fam;
+        }
+        return null;
+      };
+
+      const familyForBug = (dexId) => {
+        for (const fam of EARLY_BUG_FAMILIES) {
+          if (fam.includes(dexId)) return fam;
+        }
+        return null;
+      };
+
+
+const familyForRouteOneNormal = (dexId) => {
+  for (const fam of ROUTE_ONE_NORMAL_FAMILIES) {
+    if (fam.includes(dexId)) return fam;
+  }
+  return null;
+};
+
+
+      const familyForDex = (typeKey, dexId) => {
+        const families = STARTER_FAMILIES[typeKey] || [];
+        for (const fam of families) {
+          if (fam.includes(dexId)) return fam;
+        }
+        return null;
+      };
+
+      // Helper: create a Poké Ball tile (same style as the main grid)
+      const makeBallTile = (entry, labelText, titleText, curatedDexText = "") => {
+        const tile = document.createElement("div");
+        tile.className = "ball-tile";
+        tile.title = titleText;
+
+        const shell = document.createElement("div");
+        shell.className = "ball-shell";
+
+        let ringKind = entry.formKind || null;
+        if (!ringKind && entry.isForm) {
+          if (/alola|galar|hisui|paldea/i.test(entry.pokemonName)) {
+            ringKind = "regional";
+          }
+        }
+        if (ringKind === "mega") {
+          shell.classList.add("mega-ring");
+        } else if (ringKind === "gmax") {
+          shell.classList.add("gmax-ring");
+        } else if (ringKind === "regional") {
+          shell.classList.add("regional-ring");
+        } else if (ringKind === "variant") {
+          shell.classList.add("variant-ring");
+        } else if (ringKind === "special") {
+          shell.classList.add("special-ring");
+        }
+
+        const center = document.createElement("div");
+        center.className = "ball-center";
+        shell.appendChild(center);
+
+        const img = document.createElement("img");
+        img.className = "ball-sprite";
+        img.style.display = "none";
+        shell.appendChild(img);
+
+        // Type + sprite coloring
+        getPokemonInfo(entry.pokemonName).then((info) => {
+          const primaryType = entry.primaryTypeOverride || info.primaryType;
+          const secondaryType =
+            entry.secondaryTypeOverride !== undefined
+              ? entry.secondaryTypeOverride
+              : info.secondaryType;
+
+          const primaryColor = TYPE_COLORS[primaryType] || "#ef4444";
+          const secondaryColor = TYPE_COLORS[secondaryType] || primaryColor;
+
+          shell.style.background =
+            "linear-gradient(to bottom," +
+            primaryColor +
+            " 0%," +
+            primaryColor +
+            " 48%,#111827 48%,#111827 52%," +
+            secondaryColor +
+            " 52%," +
+            secondaryColor +
+            " 100%)";
+
+          const spriteUrl = entry.spriteOverride || info.sprite;
+          if (spriteUrl) {
+            img.src = spriteUrl;
+            img.style.display = "block";
+          } else {
+            img.style.display = "none";
+          }
+        });
+
+        // label under ball (hidden by CSS for this grid)
+        const label = document.createElement("div");
+        label.className = "ball-rank";
+        label.textContent = labelText;
+
+        
+
+        // Curated Pokédex number (only shown when provided)
+        const curated = document.createElement("div");
+        curated.className = "curated-dex";
+        curated.textContent = curatedDexText || "";
+        if (!curatedDexText) {
+          curated.style.display = "none";
+        }
+
+        tile.appendChild(shell);
+        tile.appendChild(label);
+        tile.appendChild(curated);
+        return tile;
+
+      };
+
+      const appendTopFamilyForType = (typeKey) => {
+        // Find best-ranked member of this starter set, then expand to its whole family
+        let chosenFamily = null;
+
+        for (const entryIndex of ranking) {
+          const dexId = allEntries[entryIndex]?.dexId;
+          const fam = familyForDex(typeKey, dexId);
+          if (fam) {
+            chosenFamily = fam;
+            break;
+          }
+        }
+
+        if (!chosenFamily) return false;
+
+        // Pull every entry whose Dex ID is in the chosen family
+        const familyEntries = allEntries
+          .map((e, idx) => ({ e, idx }))
+          .filter(({ e }) => chosenFamily.includes(e.dexId));
+
+        // Sort: Dex order first, then base species before forms, then name
+        familyEntries.sort((a, b) => {
+          if (a.e.dexId !== b.e.dexId) return a.e.dexId - b.e.dexId;
+          const aIsForm = !!a.e.isForm;
+          const bIsForm = !!b.e.isForm;
+          if (aIsForm !== bIsForm) return aIsForm ? 1 : -1;
+          return fullDisplayName(a.e).localeCompare(fullDisplayName(b.e));
+        });
+
+        familyEntries.forEach(({ e, idx }) => {
+          // Secondary grid rule: no Megas or G-Max forms
+          if (e.formKind === "mega" || e.formKind === "gmax") return;
+
+          const pos = ranking.indexOf(idx);
+          const rankedLabel = pos >= 0 ? "#" + displayedRankForPos(pos) : "";
+          const titleText =
+            (pos >= 0 ? ("#" + displayedRankForPos(pos) + " – ") : "") +
+            fullDisplayName(e) +
+            " (No." +
+            e.dexId +
+            ")";
+          const curatedLabel = nextCuratedDexLabel(e);
+          const tile = makeBallTile(e, rankedLabel, titleText, curatedLabel);
+          secondaryRankingGrid.appendChild(tile);
+        });
+
+        return true;
+      };
+
+      // Append up to N early-route Bug families (distinct families).
+      // Example: if Ledyba/Ledian is the top bug family, the next one cannot be that same family.
+      const appendTopEarlyBugFamilies = (count) => {
+        const chosenFamilies = [];
+        const excludedDexIds = new Set();
+
+        // Pick families in ranking order, skipping any already chosen.
+        for (const entryIndex of ranking) {
+          const dexId = allEntries[entryIndex]?.dexId;
+          const fam = familyForBug(dexId);
+          if (!fam) continue;
+
+          // Skip if this family overlaps something already chosen
+          if (fam.some((id) => excludedDexIds.has(id))) continue;
+
+          chosenFamilies.push(fam);
+          fam.forEach((id) => excludedDexIds.add(id));
+
+          if (chosenFamilies.length >= count) break;
+        }
+
+        if (chosenFamilies.length === 0) return false;
+
+        const renderFamily = (chosenFamily) => {
+          const familyEntries = allEntries
+            .map((e, idx) => ({ e, idx }))
+            .filter(({ e }) => chosenFamily.includes(e.dexId));
+
+          // Sort: Dex order first, then base species before forms, then name
+          familyEntries.sort((a, b) => {
+            if (a.e.dexId !== b.e.dexId) return a.e.dexId - b.e.dexId;
+            const aIsForm = !!a.e.isForm;
+            const bIsForm = !!b.e.isForm;
+            if (aIsForm !== bIsForm) return aIsForm ? 1 : -1;
+            return fullDisplayName(a.e).localeCompare(fullDisplayName(b.e));
+          });
+
+          familyEntries.forEach(({ e, idx }) => {
+            // Custom Pokédex rule: no Megas or G-Max forms
+            if (e.formKind === "mega" || e.formKind === "gmax") return;
+
+            const pos = ranking.indexOf(idx);
+            const rankedLabel = pos >= 0 ? "#" + displayedRankForPos(pos) : "";
+            const titleText =
+              (pos >= 0 ? ("#" + displayedRankForPos(pos) + " – ") : "") +
+              fullDisplayName(e) +
+              " (No." +
+              e.dexId +
+              ")";
+            const curatedLabel = nextCuratedDexLabel(e);
+          const tile = makeBallTile(e, rankedLabel, titleText, curatedLabel);
+            secondaryRankingGrid.appendChild(tile);
+          });
+        };
+
+        chosenFamilies.forEach(renderFamily);
+        return true;
+      };
+      // Append up to N early-route Flying families (distinct families).
+      // Example: if Pidgey/Pidgeotto/Pidgeot is the top flying family, the next one cannot be that same family.
+      const appendTopEarlyFlyingFamilies = (count) => {
+        const chosenFamilies = [];
+        const excludedDexIds = new Set();
+
+        // Pick families in ranking order, skipping any already chosen.
+        for (const entryIndex of ranking) {
+          const dexId = allEntries[entryIndex]?.dexId;
+          if (!dexId) continue;
+          if (excludedDexIds.has(dexId)) continue;
+
+          const fam = familyForFlying(dexId);
+          if (!fam) continue;
+
+          // Skip if this family overlaps something already chosen
+          if (fam.some((id) => excludedDexIds.has(id))) continue;
+
+          chosenFamilies.push(fam);
+          fam.forEach((id) => excludedDexIds.add(id));
+
+          if (chosenFamilies.length >= count) break;
+        }
+
+        if (chosenFamilies.length === 0) return false;
+
+        const renderFamily = (chosenFamily) => {
+          const familyEntries = allEntries
+            .map((e, idx) => ({ e, idx }))
+            .filter(({ e }) => chosenFamily.includes(e.dexId));
+
+          // Sort: Dex order first, then base species before forms, then name
+          familyEntries.sort((a, b) => {
+            if (a.e.dexId !== b.e.dexId) return a.e.dexId - b.e.dexId;
+            const aIsForm = !!a.e.isForm;
+            const bIsForm = !!b.e.isForm;
+            if (aIsForm !== bIsForm) return aIsForm ? 1 : -1;
+            return fullDisplayName(a.e).localeCompare(fullDisplayName(b.e));
+          });
+
+          familyEntries.forEach(({ e, idx }) => {
+            // Custom Pokédex rule: no Megas or G-Max forms
+            if (e.formKind === "mega" || e.formKind === "gmax") return;
+
+            const pos = ranking.indexOf(idx);
+            const rankedLabel = pos >= 0 ? "#" + displayedRankForPos(pos) : "";
+            const titleText =
+              (pos >= 0 ? ("#" + displayedRankForPos(pos) + " – ") : "") +
+              fullDisplayName(e) +
+              " (No." +
+              e.dexId +
+              ")";
+            const curatedLabel = nextCuratedDexLabel(e);
+          const tile = makeBallTile(e, rankedLabel, titleText, curatedLabel);
+            secondaryRankingGrid.appendChild(tile);
+          });
+        };
+
+        chosenFamilies.forEach(renderFamily);
+        return true;
+      };
+
+
+// Append up to N Route 1 Normal families (distinct families).
+// Example: if Rattata/Raticate is the top Route 1 normal family, the next one cannot be that same family.
+const appendTopRouteOneNormalFamilies = (count) => {
+  const chosenFamilies = [];
+  const excludedDexIds = new Set();
+
+  // Pick families in ranking order, skipping any already chosen.
+  for (const entryIndex of ranking) {
+    const dexId = allEntries[entryIndex]?.dexId;
+    if (!dexId) continue;
+    if (excludedDexIds.has(dexId)) continue;
+
+    const fam = familyForRouteOneNormal(dexId);
+    if (!fam) continue;
+
+    // Skip if this family overlaps something already chosen
+    if (fam.some((id) => excludedDexIds.has(id))) continue;
+
+    chosenFamilies.push(fam);
+    fam.forEach((id) => excludedDexIds.add(id));
+
+    if (chosenFamilies.length >= count) break;
+  }
+
+  if (chosenFamilies.length === 0) return false;
+
+  const renderFamily = (chosenFamily) => {
+    const familyEntries = allEntries
+      .map((e, idx) => ({ e, idx }))
+      .filter(({ e }) => chosenFamily.includes(e.dexId));
+
+    // Sort: Dex order first, then base species before forms, then name
+    familyEntries.sort((a, b) => {
+      if (a.e.dexId !== b.e.dexId) return a.e.dexId - b.e.dexId;
+      const aIsForm = !!a.e.isForm;
+      const bIsForm = !!b.e.isForm;
+      if (aIsForm !== bIsForm) return aIsForm ? 1 : -1;
+      return fullDisplayName(a.e).localeCompare(fullDisplayName(b.e));
+    });
+
+    familyEntries.forEach(({ e, idx }) => {
+      // Custom Pokédex rule: no Megas or G-Max forms
+      if (e.formKind === "mega" || e.formKind === "gmax") return;
+
+      const pos = ranking.indexOf(idx);
+      const rankedLabel = pos >= 0 ? "#" + displayedRankForPos(pos) : "";
+      const titleText =
+        (pos >= 0 ? ("#" + displayedRankForPos(pos) + " – ") : "") +
+        fullDisplayName(e) +
+        " (No." +
+        e.dexId +
+        ")";
+      const curatedLabel = nextCuratedDexLabel(e);
+          const tile = makeBallTile(e, rankedLabel, titleText, curatedLabel);
+      secondaryRankingGrid.appendChild(tile);
+    });
+  };
+
+  chosenFamilies.forEach(renderFamily);
+  return true;
+};
+
+// Append up to N Route 1 extra families (distinct families).
+// Example: if Shinx/Luxio/Luxray is the top extra family, the next one cannot be that same family.
+const appendTopRouteOneExtraFamilies = (count) => {
+  const chosenFamilies = [];
+  const excludedDexIds = new Set();
+
+  // Pick families in ranking order, skipping any already chosen.
+  for (const entryIndex of ranking) {
+    const dexId = allEntries[entryIndex]?.dexId;
+    if (!dexId) continue;
+    if (excludedDexIds.has(dexId)) continue;
+
+    const fam = familyForRouteOneExtra(dexId);
+    if (!fam) continue;
+
+    // Skip if this family overlaps something already chosen
+    if (fam.some((id) => excludedDexIds.has(id))) continue;
+
+    chosenFamilies.push(fam);
+    fam.forEach((id) => excludedDexIds.add(id));
+
+    if (chosenFamilies.length >= count) break;
+  }
+
+  if (chosenFamilies.length === 0) return false;
+
+  const renderFamily = (chosenFamily) => {
+    const familyEntries = allEntries
+      .map((e, idx) => ({ e, idx }))
+      .filter(({ e }) => chosenFamily.includes(e.dexId));
+
+    // Sort: Dex order first, then base species before forms, then name
+    familyEntries.sort((a, b) => {
+      if (a.e.dexId !== b.e.dexId) return a.e.dexId - b.e.dexId;
+      const aIsForm = !!a.e.isForm;
+      const bIsForm = !!b.e.isForm;
+      if (aIsForm !== bIsForm) return aIsForm ? 1 : -1;
+      return fullDisplayName(a.e).localeCompare(fullDisplayName(b.e));
+    });
+
+    familyEntries.forEach(({ e, idx }) => {
+      // Custom Pokédex rule: no Megas or G-Max forms
+      if (e.formKind === "mega" || e.formKind === "gmax") return;
+
+      const pos = ranking.indexOf(idx);
+      const rankedLabel = pos >= 0 ? "#" + displayedRankForPos(pos) : "";
+      const titleText =
+        (pos >= 0 ? ("#" + displayedRankForPos(pos) + " – ") : "") +
+        fullDisplayName(e) +
+        " (No." +
+        e.dexId +
+        ")";
+      const curatedLabel = nextCuratedDexLabel(e);
+          const tile = makeBallTile(e, rankedLabel, titleText, curatedLabel);
+      secondaryRankingGrid.appendChild(tile);
+    });
+  };
+
+  chosenFamilies.forEach(renderFamily);
+  return true;
+};
+
+// Fill the middle of the Custom Pokédex (right after Route 1 Extra and before the pseudo-legendary block)
+// using your ranked list, excluding: starters, early bugs, early birds, early route-1 normals, early extra,
+// pseudo-legendary lines, and all legendary/mythical Pokémon. Also excludes Mega/G-Max forms by rule.
+// Stops at curated dex #444 so the pseudo block can always start at #445.
+const LEGENDARY_MYTHICAL_IDS = new Set([
+  // Kanto
+  144,145,146,150,151,
+  // Johto
+  243,244,245,249,250,251,
+  // Hoenn
+  377,378,379,380,381,382,383,384,385,386,
+  // Sinnoh
+  480,481,482,483,484,485,486,487,488,489,490,491,492,493,
+  // Unova
+  494,638,639,640,641,642,643,644,645,646,647,648,649,
+  // Kalos
+  716,717,718,719,720,721,
+  // Alola
+  785,786,787,788,789,790,791,792,793,794,795,796,797,798,799,800,801,802,
+  // Galar
+  803,804,805,806,807,808,809,888,889,890,891,892,893,894,895,896,897,898,
+  // Hisui
+  899,900,901,902,903,904,905,
+  // Paldea
+  1001,1002,1003,1004,1005,1006,1007,1008,1014,1015,1016,1017,1020,1021,1022,1023,1024,1025
+]);
+
+const appendFillUntilPseudoStart = () => {
+  const MAX_BEFORE_PSEUDO = 444;
+
+  const excludedDexIds = new Set();
+
+  const familyFromList = (familyList, dexId) => {
+    for (const fam of familyList) {
+      if (fam.includes(dexId)) return fam;
+    }
+    return null;
+  };
+
+  const addFamilyToExcluded = (fam) => {
+    if (!fam) return;
+    fam.forEach((id) => excludedDexIds.add(id));
+  };
+
+  // Exclude chosen starter families (grass/fire/water)
+  ["grass","fire","water"].forEach((typeKey) => {
+    let chosen = null;
+    for (const entryIndex of ranking) {
+      const dexId = allEntries[entryIndex]?.dexId;
+      if (!dexId) continue;
+      const fam = familyForDex(typeKey, dexId);
+      if (fam) { chosen = fam; break; }
+    }
+    addFamilyToExcluded(chosen);
+  });
+
+  // Exclude early bug families (2), early flying families (2), route-1 normal families (2), route-1 extra (1)
+  const pickTopFamilies = (familyList, count) => {
+    const chosen = [];
+    for (const entryIndex of ranking) {
+      const dexId = allEntries[entryIndex]?.dexId;
+      if (!dexId) continue;
+      const fam = familyFromList(familyList, dexId);
+      if (!fam) continue;
+      if (chosen.some((f) => f === fam)) continue;
+      // avoid overlaps
+      if (fam.some((id) => excludedDexIds.has(id))) continue;
+      chosen.push(fam);
+      addFamilyToExcluded(fam);
+      if (chosen.length >= count) break;
+    }
+  };
+
+  pickTopFamilies(EARLY_BUG_FAMILIES, 2);
+  pickTopFamilies(EARLY_FLYING_FAMILIES, 2);
+  pickTopFamilies(ROUTE_ONE_NORMAL_FAMILIES, 2);
+  pickTopFamilies(ROUTE_ONE_EXTRA_FAMILIES, 1);
+
+  // Exclude all pseudo-legendary dex IDs so they don't appear in the fill section
+  PSEUDO_LEGENDARY_FAMILIES.flat().forEach((id) => excludedDexIds.add(id));
+
+  // Exclude all legendary & mythical dex IDs
+  LEGENDARY_MYTHICAL_IDS.forEach((id) => excludedDexIds.add(id));
+
+  let appendedAny = false;
+
+  const wouldExceedMax = (entryDexId) => {
+    const isNewDexId = entryDexId !== curatedLastDexId;
+    const wouldBe = curatedDexCounter + (isNewDexId ? 1 : 0);
+    return wouldBe > MAX_BEFORE_PSEUDO;
+  };
+
+  const renderDexIdGroup = (dexId) => {
+    // Stop if adding this dexId would push us past #444
+    if (wouldExceedMax(dexId)) return false;
+
+    const groupEntries = allEntries
+      .map((e, idx) => ({ e, idx }))
+      .filter(({ e }) => e && e.dexId === dexId && e.formKind !== "mega" && e.formKind !== "gmax");
+
+    // Sort: base species first, then forms, then name
+    groupEntries.sort((a, b) => {
+      const aIsForm = !!a.e.isForm;
+      const bIsForm = !!b.e.isForm;
+      if (aIsForm !== bIsForm) return aIsForm ? 1 : -1;
+      return fullDisplayName(a.e).localeCompare(fullDisplayName(b.e));
+    });
+
+    groupEntries.forEach(({ e, idx }) => {
+      // Curated Pokédex rule: no Megas or G-Max forms (double safety)
+      if (e.formKind === "mega" || e.formKind === "gmax") return;
+      const pos = ranking.indexOf(idx);
+      const rankedLabel = pos >= 0 ? "#" + displayedRankForPos(pos) : "";
+      const titleText =
+        (pos >= 0 ? ("#" + displayedRankForPos(pos) + " – ") : "") +
+        fullDisplayName(e) +
+        " (No." +
+        e.dexId +
+        ")";
+      const curatedLabel = nextCuratedDexLabel(e);
+      const tile = makeBallTile(e, rankedLabel, titleText, curatedLabel);
+      secondaryRankingGrid.appendChild(tile);
+    });
+
+    excludedDexIds.add(dexId);
+    appendedAny = true;
+    return true;
+  };
+
+  for (const entryIndex of ranking) {
+    const e = allEntries[entryIndex];
+    if (!e) continue;
+
+    // Curated Pokédex rules
+    if (e.formKind === "mega" || e.formKind === "gmax") continue;
+    if (excludedDexIds.has(e.dexId)) continue;
+
+    if (!renderDexIdGroup(e.dexId)) break; // either hit max or couldn't add
+    if (curatedDexCounter >= MAX_BEFORE_PSEUDO) break;
+  }
+
+  return appendedAny;
+};
+
+
+	// Append the top pseudo-legendary families.
+	// IMPORTANT: Their curated numbering must always be 445-450, regardless of how many entries
+	// exist earlier in the curated grid.
+	const appendTopPseudoLegendaryFamilies = (count) => {
+	  const chosenFamilies = [];
+	  const excludedDexIds = new Set();
+
+	  // Pick families in ranking order, skipping any already chosen.
+	  for (const entryIndex of ranking) {
+	    const dexId = allEntries[entryIndex]?.dexId;
+	    if (!dexId) continue;
+	    if (excludedDexIds.has(dexId)) continue;
+
+	    const fam = familyForPseudoLegendary(dexId);
+	    if (!fam) continue;
+
+	    // Skip if this family overlaps something already chosen
+	    if (fam.some((id) => excludedDexIds.has(id))) continue;
+
+	    chosenFamilies.push(fam);
+	    fam.forEach((id) => excludedDexIds.add(id));
+
+	    if (chosenFamilies.length >= count) break;
+	  }
+
+	  if (chosenFamilies.length === 0) return false;
+
+	  // Force curated numbering to begin at #445 for the first pseudo line.
+	  // (We set counter to 444 so the next new dexId becomes 445.)
+	  setCuratedDexCounter(444);
+
+	  const renderFamily = (chosenFamily) => {
+	    const familyEntries = allEntries
+	      .map((e, idx) => ({ e, idx }))
+	      .filter(({ e }) => chosenFamily.includes(e.dexId));
+
+	    // Sort: Dex order first, then base species before forms, then name
+	    familyEntries.sort((a, b) => {
+	      if (a.e.dexId !== b.e.dexId) return a.e.dexId - b.e.dexId;
+	      const aIsForm = !!a.e.isForm;
+	      const bIsForm = !!b.e.isForm;
+	      if (aIsForm !== bIsForm) return aIsForm ? 1 : -1;
+	      return fullDisplayName(a.e).localeCompare(fullDisplayName(b.e));
+	    });
+
+	    familyEntries.forEach(({ e, idx }) => {
+	      // Custom Pokédex rule: no Megas or G-Max forms
+	      if (e.formKind === "mega" || e.formKind === "gmax") return;
+
+	      const pos = ranking.indexOf(idx);
+	      const rankedLabel = pos >= 0 ? "#" + displayedRankForPos(pos) : "";
+	      const titleText =
+	        (pos >= 0 ? ("#" + displayedRankForPos(pos) + " – ") : "") +
+	        fullDisplayName(e) +
+	        " (No." +
+	        e.dexId +
+	        ")";
+
+	      const curatedLabel = nextCuratedDexLabel(e);
+	      const tile = makeBallTile(e, rankedLabel, titleText, curatedLabel);
+	      secondaryRankingGrid.appendChild(tile);
+	    });
+	  };
+
+	  chosenFamilies.forEach(renderFamily);
+	  return true;
+	};
+
+
+
+      secondaryRankingGrid.innerHTML = "";
+
+      const foundGrass = appendTopFamilyForType("grass");
+      const foundFire = appendTopFamilyForType("fire");
+      const foundWater = appendTopFamilyForType("water");
+      const foundEarlyBug = appendTopEarlyBugFamilies(2);
+      const foundEarlyFlying = appendTopEarlyFlyingFamilies(2);
+      const foundRouteOneNormal = appendTopRouteOneNormalFamilies(2);
+      const foundRouteOneExtra = appendTopRouteOneExtraFamilies(1);
+      const filledMiddle = appendFillUntilPseudoStart();
+	      const foundPseudoLegendary = appendTopPseudoLegendaryFamilies(2);
+	      if (!foundGrass && !foundFire && !foundWater && !foundEarlyBug && !foundEarlyFlying && !foundRouteOneNormal && !foundRouteOneExtra && !filledMiddle && !foundPseudoLegendary) {
+        const emptyDiv = document.createElement("div");
+        emptyDiv.className = "full-ranking-empty";
+        emptyDiv.textContent =
+	          "No starter, Route 1 normal, Route 1 extra, early-route Bug, early-route Flying, or pseudo-legendary families found in your ranking yet.";
+        secondaryRankingGrid.appendChild(emptyDiv);
+      }
     }
 
     function saveState() {
@@ -1875,7 +3533,10 @@
         ranking,
         currentInsertIndex,
         compareRankPos,
-        mode
+        mode,
+        tieGroupByEntry,
+        nextTieGroupId,
+        actionHistory
       };
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -1894,7 +3555,6 @@
 
     async function fetchSpeciesListAndBuildEntries() {
       statusMain.textContent = "Loading Pokédex species from PokéAPI…";
-      statusProgress.textContent = "";
 
       const url = "https://pokeapi.co/api/v2/pokemon-species?limit=10000&offset=0";
 
@@ -1939,32 +3599,560 @@
           }
         }
         
-        // Force Unown base sprite to be Unown A
+        
+        baseEntries = deepCopyEntries(allEntries);
+        rebuildAllEntriesFromBase();
+        await applyOrderingMode();
+
+statusMain.textContent =
+          "Pokédex loaded: " + allEntries.length + " entries (species + forms).";
+        startBtn.disabled = false;
+        resetBtn.disabled = false;
+        musicBtn.disabled = false;
+
+        await restoreStateIfExists();
+      } catch (err) {
+        console.error(err);
+        statusMain.textContent = "Error loading Pokédex.";
+      }
+    }
+
+    function initVolumeControl() {
+        if (!bgm || !volumeSlider) return;
+
+        // Load saved volume or default to 0.7 (70%)
+        const saved = parseFloat(localStorage.getItem(VOLUME_KEY));
+        const initialVolume = isNaN(saved) ? 0.7 : saved;
+
+        bgm.volume = initialVolume;
+        volumeSlider.value = Math.round(initialVolume * 100);
+
+        // Update volume live as the slider moves
+        volumeSlider.addEventListener("input", () => {
+        const v = volumeSlider.value / 100; // 0.0–1.0
+        bgm.volume = v;
+        localStorage.setItem(VOLUME_KEY, v.toString());
+        });
+    }
+
+    // Call this once after the DOM is ready and bgm is defined
+    initVolumeControl();
+
+
+    async function toggleMusic() {
+        if (!bgm) return;
+
+        if (!musicEnabled) {
+            try {
+                await bgm.play();
+                musicEnabled = true;
+                musicBtn.textContent = "Music: On";
+            } catch (err) {
+                console.error("Could not start music:", err);
+                // If browser blocks autoplay, you might see an error here.
+            }
+        } else {
+            bgm.pause();
+            musicEnabled = false;
+            musicBtn.textContent = "Music: Off";
+        }
+    }
+
+
+    function setCardContent(side, entryIndex) {
+      const entry = allEntries[entryIndex];
+      const prettyName = fullDisplayName(entry);
+      const dexId = entry.dexId;
+
+      
+      const bulbaUrl = bulbapediaUrlForEntry(entry);
+      if (side === "left") {
+        if (bulbaLeft) {
+          bulbaLeft.href = bulbaUrl;
+          bulbaLeft.title = "Open Bulbapedia for " + prettyName;
+        }
+      } else {
+        if (bulbaRight) {
+          bulbaRight.href = bulbaUrl;
+          bulbaRight.title = "Open Bulbapedia for " + prettyName;
+        }
+      }
+
+if (side === "left") {
+        imgLeft.dataset.entryIndex = String(entryIndex);
+        nameLeft.textContent = prettyName;
+        idLeft.textContent = "No." + dexId;
+        imgLeft.style.display = "none";
+        imgPlaceholderLeft.style.display = "block";
+        imgPlaceholderLeft.textContent = "Loading…";
+
+        getPokemonInfo(entry.pokemonName, entry.spriteOverride).then((info) => {
+          const ballEl = document.querySelector("#card-left .selection-ball");
+
+          // Use overrides if present
+          const primaryType = entry.primaryTypeOverride || info.primaryType;
+          const secondaryType =
+            entry.secondaryTypeOverride !== undefined
+              ? entry.secondaryTypeOverride
+              : info.secondaryType;
+
+          const primaryColor = TYPE_COLORS[primaryType] || "#ef4444";
+          const secondaryColor = TYPE_COLORS[secondaryType] || primaryColor;
+    
+          if (ballEl) {
+            ballEl.style.background =
+              "linear-gradient(to bottom," +
+              primaryColor + " 0%," +
+              primaryColor + " 48%,#111827 48%,#111827 52%," +
+              secondaryColor + " 52%," +
+              secondaryColor + " 100%)";
+    
+            ballEl.classList.remove(
+              "mega-ring",
+              "gmax-ring",
+              "regional-ring",
+              "variant-ring",
+              "special-ring"
+            );
+
+            let ringKind = entry.formKind || null;
+            if (!ringKind && entry.isForm) {
+              if (/alola|galar|hisui|paldea/i.test(entry.pokemonName)) {
+                ringKind = "regional";
+              }
+            }
+            if (ringKind) {
+              ballEl.classList.add(ringKind + "-ring");
+            }
+          }
+    
+          // ✅ Prefer per-entry override
+          const spriteUrl = entry.spriteOverride || info.sprite;
+    
+          if (spriteUrl) {
+            imgLeft.src = spriteUrl;
+            imgLeft.style.display = "block";
+            imgPlaceholderLeft.style.display = "none";
+          } else {
+            imgLeft.style.display = "none";
+            imgPlaceholderLeft.style.display = "block";
+            imgPlaceholderLeft.textContent = "No image";
+          }
+        });
+
+      } else {
+        imgRight.dataset.entryIndex = String(entryIndex);
+        nameRight.textContent = prettyName;
+        idRight.textContent = "No." + dexId;
+        imgRight.style.display = "none";
+        imgPlaceholderRight.style.display = "block";
+        imgPlaceholderRight.textContent = "Loading…";
+
+        getPokemonInfo(entry.pokemonName, entry.spriteOverride).then((info) => {
+          const ballEl = document.querySelector("#card-right .selection-ball");
+
+          const primaryType = entry.primaryTypeOverride || info.primaryType;
+          const secondaryType =
+            entry.secondaryTypeOverride !== undefined
+              ? entry.secondaryTypeOverride
+              : info.secondaryType;
+    
+          const primaryColor = TYPE_COLORS[primaryType] || "#ef4444";
+          const secondaryColor = TYPE_COLORS[secondaryType] || primaryColor;
+    
+          if (ballEl) {
+            ballEl.style.background =
+              "linear-gradient(to bottom," +
+              primaryColor + " 0%," +
+              primaryColor + " 48%,#111827 48%,#111827 52%," +
+              secondaryColor + " 52%," +
+              secondaryColor + " 100%)";
+
+            ballEl.classList.remove(
+              "mega-ring",
+              "gmax-ring",
+              "regional-ring",
+              "variant-ring",
+              "special-ring"
+            );
+
+            let ringKind = entry.formKind || null;
+            if (!ringKind && entry.isForm) {
+              if (/alola|galar|hisui|paldea/i.test(entry.pokemonName)) {
+                ringKind = "regional";
+              }
+            }
+            if (ringKind) {
+              ballEl.classList.add(ringKind + "-ring");
+            }
+          }
+    
+          // ✅ Prefer per-entry override
+          const spriteUrl = entry.spriteOverride || info.sprite;
+
+          if (spriteUrl) {
+            imgRight.src = spriteUrl;
+            imgRight.style.display = "block";
+            imgPlaceholderRight.style.display = "none";
+          } else {
+            imgRight.style.display = "none";
+            imgPlaceholderRight.style.display = "block";
+            imgPlaceholderRight.textContent = "No image";
+          }
+        });
+      }
+    }
+
+
+    function updateButtonsEnabled(enabled) {
+      btnLeft.disabled = !enabled;
+      btnRight.disabled = !enabled;
+      tieBtn.disabled = !enabled;
+      undoBtn.disabled = actionHistory.length === 0;
+    }
+
+    function updateInsertionStatusTexts() {
+      const entry = allEntries[currentInsertIndex];
+      statusMain.textContent =
+        "Inserting " +
+        fullDisplayName(entry) +
+        " (No." +
+        entry.dexId +
+        ") into your list.";
+      const lastDex = allEntries[allEntries.length - 1].dexId;
+    }
+
+    function askUnownMode() {
+      const choice = confirm(
+        "Do you want to rank ALL Unown forms?\n\n" +
+        "OK = Shows all Unown letters\n" +
+        "CANCEL = Only shows Unown A"
+      );
+      singleUnownMode = !choice;
+    }
+
+    function askCastformMode() {
+      const choice = confirm(
+        "Do you want to rank ALL Castform forms?\n\n" +
+        "OK = Shows all Castform weathers\n" +
+        "CANCEL = Only shows base Castform"
+      );
+      singleCastformMode = !choice;
+    }
+
+    function askDeoxysMode() {
+      const choice = confirm(
+        "Do you want to rank ALL Deoxys forms?\n\n" +
+        "OK = Shows all Deoxys forms\n" +
+        "CANCEL = Only shows Deoxys normal form"
+      );
+      singleDeoxysMode = !choice;
+    }
+
+    function askBurmyMode() {
+      const choice = confirm(
+        "Do you want to rank ALL Burmy cloaks?\n\n" +
+        "OK = Show all Burmy cloaks\n" +
+        "CANCEL = Only Show Burmy Plant Cloak"
+      );
+      singleBurmyMode = !choice;
+    }
+
+    function askWormadamMode() {
+      const choice = confirm(
+        "Do you want to rank ALL Wormadam cloaks?\n\n" +
+        "OK = Show all Wormadam cloaks\n" +
+        "CANCEL = Only Show Wormadam Plant Cloak"
+      );
+      singleWormadamMode = !choice;
+    }
+
+    function askRotomMode() {
+      const choice = confirm(
+        "Do you want to rank ALL Rotom Appliance Forms?\n\n" +
+        "OK = Show all appliance forms of Rotom\n" +
+        "CANCEL = Only show base form Rotom"
+      );
+      singleRotomMode = !choice;
+    }
+
+    function askArceusMode() {
+      const choice = confirm(
+        "Do you want to rank ALL Arceus typing?\n\n" +
+        "OK = Show all types of Arceus\n" +
+        "CANCEL = Only show normal type Arceus"
+      );
+      singleArceusMode = !choice;
+    }
+
+    function askDeerlingSawsbuckMode() {
+      const choice = confirm(
+        "Do you want to rank All seasons of Deerling and Sawsbuck?\n\n" +
+        "OK = Show all Deerling and Sawsbuck seasons\n" +
+        "CANCEL = Only show spring Deerling and Sawsbuck"
+      );
+      singleDeerlingSawsbuckMode = !choice;
+    }
+
+    function askGenesectMode() {
+      const choice = confirm(
+        "Do you want to rank All Genesect Drives?\n\n" +
+        "OK = Show all drives\n" +
+        "CANCEL = Show only no drive"
+      );
+      singleGenesectMode = !choice;
+    }
+
+    function askVivillonMode() {
+      const choice = confirm(
+        "Do you want to rank all Vivillon Patterns?\n\n" +
+        "OK = Show all 20 Vivillon patterns\n" +
+        "CANCEL = Show only meadow pattern Vivillon"
+      );
+      singleVivillonMode = !choice;
+    }
+    
+    function askFlabebeFloetteFlorgesMode() {
+      const choice = confirm(
+        "Do you want to rank all flower colors of Flabébé, Floette, and Florges?\n\n" +
+        "OK = Show all flower colors of the entire evolution line\n" +
+        "CANCEL = Red, blue, yellow, orange, and white flowers become just red(eternal flower remains seperate)"
+      );
+      singleFlabebeFloetteFlorgesMode = !choice;
+    }
+
+    function askFurFrouMode() {
+      const choice = confirm(
+        "Do you want to rank every Furfrou trim?\n\n" +
+        "OK = Show all Trims\n" +
+        "CANCEL = Show only untrimed Furfrou"
+      );
+      singleFurfrouMode = !choice;
+    }
+
+    function askPumpkabooGourgeistMode() {
+      const choice = confirm(
+        "Do you want to rank all sizes of Pumpkaboo and Gourgeist?\n\n" +
+        "OK = Show all size\n" +
+        "CANCEL = Only show average size"
+      );
+      singlePumpkabooGourgeistMode = !choice;
+    }
+
+    function askLycanrocMode() {
+      const choice = confirm(
+        "Do you want to rank all forms of Lycanroc?\n\n" +
+        "OK = Show all forms\n" +
+        "CANCEL = show only midday"
+      );
+      singleLycanrocMode = !choice;
+    }
+
+    function askSilvallyMode() {
+      const choice = confirm(
+        "Do you want to rank all types of Silvally?\n\n" +
+        "OK = Show all types\n" +
+        "CANCEL = show only normal"
+      );
+      singleSilvallyMode = !choice;
+    }
+
+    function askMiniorMode() {
+      const choice = confirm(
+        "Do you want to rank all core colors of Minior?\n\n" +
+        "OK = Show all 7 core colors along with shield up\n" +
+        "CANCEL = Show just shield up"
+      );
+      singleMiniorMode = !choice;
+    }
+
+    function askAlcremieMode() {
+      const choice = confirm(
+        "Do you want to rank all 70 creme and sweet variants of Alcremie\n\n" +
+        "OK = Show all 70 creme and sweet variants\n" +
+        "CANCEL = Only show one Alcremie variant"
+      );
+      singleAlcremieMode = !choice;
+    }
+
+    function askSquawkabillyMode() {
+      const choice = confirm(
+        "Do you want to rank all four colors of Squawkabilly?\n\n" +
+        "OK = Show all four colors\n" +
+        "CANCEL = Show only green"
+      );
+      singleSquawkabillyMode = !choice;
+    }
+
+    function askMegasMode() {
+      const choice = confirm(
+        "Do you want to include mega forms in the ranking?\n\n" +
+        "OK = Show all megas from X, Y, Z-A base game, and Mega Dimension\n" +
+        "CANCEL = Don't show any megas"
+      )
+      megasIncludedMode = choice;
+    }
+
+    function askGMaxMode() {
+      const choice = confirm(
+        "Do you want to include G-Max forms in the ranking?\n\n" +
+        "OK = Show all megas from Sword, Shield, Isle of Armor, and Crown Tundra\n" +
+        "CANCEL = Don't show any G-Max forms"
+      )
+      gMaxsIncludedMode = choice;
+    }
+
+    
+    function askOrderingMode() {
+      const msg =
+        "Pick an ordering mode for the upcoming ranking:\n\n" +
+        "1) National Pokedex Order\n" +
+        "2) Ordered Families\n" +
+        "3) Completely Random\n\n" +
+        "Type 1, 2, or 3 and press OK.\n" +
+        "(Cancel defaults to National Pokedex Order)";
+      const ansRaw = prompt(msg, "1");
+      const ans = (ansRaw || "").trim();
+      if (ans === "2") orderingMode = "families";
+      else if (ans === "3") orderingMode = "random";
+      else orderingMode = "national";
+    }
+
+    function deepCopyEntries(arr) {
+      if (typeof structuredClone === "function") return structuredClone(arr);
+      return JSON.parse(JSON.stringify(arr));
+    }
+
+    function rebuildAllEntriesFromBase() {
+      allEntries = deepCopyEntries(baseEntries);
+
+if (singleUnownMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 201 && e.isForm));
+        }
+        if (singleCastformMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 351 && e.isForm));
+        }
+        if (singleDeoxysMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 386 && e.isForm));
+        }
+        if (singleBurmyMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 412 && e.isForm));
+        }
+        if (singleWormadamMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 413 && e.isForm));
+        }
+        if (singleRotomMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 479 && e.isForm));
+        }
+        if (singleArceusMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 493 && e.isForm));
+        }
+        if (singleDeerlingSawsbuckMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 585 && e.isForm));
+          allEntries = allEntries.filter(e => !(e.dexId === 586 && e.isForm));
+        }
+        if (singleGenesectMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 649 && e.isForm));
+        }
+        if (singleVivillonMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 666 && e.isForm));
+        }
+        if (singleFlabebeFloetteFlorgesMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 669 && e.isForm));
+          allEntries = allEntries.filter(e => {
+            if (e.dexId !== 670) return true;
+            if (!e.isForm) return true;
+            if (e.formKind === "special" || e.formKind === "mega") return true;
+            return false;
+            });
+          allEntries = allEntries.filter(e => !(e.dexId === 671 && e.isForm));
+        }
+        if (singleFurfrouMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 676 && e.isForm));
+        }
+        if (singlePumpkabooGourgeistMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 710 && e.isForm));
+          allEntries = allEntries.filter(e => !(e.dexId === 711 && e.isForm));
+        }
+        if (singleLycanrocMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 745 && e.isForm));
+        }
+        if (singleSilvallyMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 773 && e.isForm));
+        }
+        if (singleMiniorMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 774 && e.isForm));
+        }
+        if (singleAlcremieMode) {
+          allEntries = allEntries.filter(e => {
+            if (e.dexId !== 869) return true;
+            if (!e.isForm) return true;
+            if (e.formKind === "gmax") return true;
+            return false;
+            });
+        }
+        if (singleSquawkabillyMode) {
+          allEntries = allEntries.filter(e => !(e.dexId === 931 && e.isForm));
+        }
+        if (!megasIncludedMode) {
+          allEntries = allEntries.filter(e => e.formKind !== "mega");
+        }
+        if (!gMaxsIncludedMode) {
+          allEntries = allEntries.filter(e => e.formKind !== "gmax");
+        }
+
         const unownEntry = allEntries.find(e => e.dexId === 201 && !e.isForm);
         if (unownEntry) {
             unownEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/201-a.png";
-            unownEntry.displayName = "Unown (A)";
+            if (!singleUnownMode) {
+              unownEntry.displayName = "Unown (A)";
+            } else {
+              unownEntry.displayName = "Unown";
+            }
+        }
+        const castformEntry = allEntries.find(e => e.dexId === 351 && !e.isForm);
+        if (castformEntry) {
+          castformEntry.pokemonName = "castform";
+          castformEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/351.png";
+          if (!singleCastformMode) {
+            castformEntry.displayName = "Castform (Normal Form)";
+          } else {
+            castformEntry.displayName = "Castform";
+          }
         }
         const deoxysEntry = allEntries.find(e => e.dexId === 386 && !e.isForm);
         if (deoxysEntry) {
             deoxysEntry.pokemonName = "deoxys-normal";
             deoxysEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/386-normal.png";
-            deoxysEntry.displayName = "Deoxys (Normal Forme)";
+            if (!singleDeoxysMode) {  
+              deoxysEntry.displayName = "Deoxys (Normal Forme)";
+            } else {
+              deoxysEntry.displayName = "Deoxys";
+            }
         }
         const burmyEntry = allEntries.find(e => e.dexId === 412 && !e.isForm);
         if (burmyEntry) {
             burmyEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/412-plant.png";
-            burmyEntry.displayName = "Burmy (Plant Cloak)";
+            if (!singleBurmyMode) {    
+              burmyEntry.displayName = "Burmy (Plant Cloak)";
+            } else {
+              burmyEntry.displayName = "Burmy";
+            }
         }
         const wormadamEntry = allEntries.find(e => e.dexId === 413 && !e.isForm);
         if (wormadamEntry) {
             wormadamEntry.pokemonName = "wormadam-plant";
             wormadamEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/413-plant.png";
-            wormadamEntry.displayName = "Wormadam (Plant Cloak)";
+            if (!singleWormadamMode) {
+              wormadamEntry.displayName = "Wormadam (Plant Cloak)";
+            } else {
+              wormadamEntry.displayName = "Wormadam";
+            }
         }
         const shellosEntry = allEntries.find(e => e.dexId === 422 && !e.isForm);
         if (shellosEntry) {
@@ -1994,7 +4182,11 @@
         }
         const arceusEntry = allEntries.find(e => e.dexId === 493 && !e.isForm);
         if (arceusEntry) {
+          if (!singleArceusMode) {
             arceusEntry.displayName = "Arceus (Normal Type)";
+          } else {
+            arceusEntry.displayName = "Arceus";
+          }
         }
         const basculinEntry = allEntries.find(e => e.dexId === 550 && !e.isForm);
         if (basculinEntry) {
@@ -2014,13 +4206,21 @@
         if (deerlingEntry) {
             deerlingEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/585-spring.png";
+          if (!singleDeerlingSawsbuckMode) {  
             deerlingEntry.displayName = "Spring Deerling";
+          } else {
+            deerlingEntry.displayName = "Deerling";
+          }
         }
         const sawsbuckEntry = allEntries.find(e => e.dexId === 586 && !e.isForm);
         if (sawsbuckEntry) {
             sawsbuckEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/586-spring.png";
-            sawsbuckEntry.displayName = "Spring Sawsbuck";
+            if (!singleDeerlingSawsbuckMode) {    
+              sawsbuckEntry.displayName = "Spring Sawsbuck";
+            } else {
+              sawsbuckEntry.displayName = "Sawsbuck";
+            }
         }
         const tornadusEntry = allEntries.find(e => e.dexId === 641 && !e.isForm);
         if (tornadusEntry) {
@@ -2061,37 +4261,61 @@
         if (genesectEntry) {
             genesectEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/649.png";
-            genesectEntry.displayName = "Genesect (Normal)";
+            if (!singleGenesectMode) {    
+              genesectEntry.displayName = "Genesect (Normal)";
+            } else {
+              genesectEntry.displayName = "Genesect";
+            }
         }
         const vivillonEntry = allEntries.find(e => e.dexId === 666 && !e.isForm);
         if (vivillonEntry) {
             vivillonEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/666-meadow.png";
-            vivillonEntry.displayName = "Vivillon (Meadow Pattern)";
+            if (!singleVivillonMode) {
+              vivillonEntry.displayName = "Vivillon (Meadow Pattern)";
+            } else {
+              vivillonEntry.displayName = "Vivillon";
+            }
         }
         const flabebeEntry = allEntries.find(e => e.dexId === 669 && !e.isForm);
         if (flabebeEntry) {
             flabebeEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/669-red.png";
-            flabebeEntry.displayName = "Flabébé (Red Flower)";
+            if (!singleFlabebeFloetteFlorgesMode) {
+              flabebeEntry.displayName = "Flabébé (Red Flower)";
+            } else {
+              flabebeEntry.displayName = "Flabébé";
+            }
         }
         const floetteEntry = allEntries.find(e => e.dexId === 670 && !e.isForm);
         if (floetteEntry) {
             floetteEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/670-red.png";
-            floetteEntry.displayName = "Floette (Red Flower)";
+            if (!singleFlabebeFloetteFlorgesMode) {
+              floetteEntry.displayName = "Floette (Red Flower)";
+            } else {
+              floetteEntry.displayName = "Floette";
+            }
         }
         const florgesEntry = allEntries.find(e => e.dexId === 671 && !e.isForm);
         if (florgesEntry) {
             florgesEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/671-red.png";
-            florgesEntry.displayName = "Florges (Red Flower)";
+            if (!singleFlabebeFloetteFlorgesMode) {
+              florgesEntry.displayName = "Florges (Red Flower)";
+            } else {
+              florgesEntry.displayName = "Florges";
+            }
         }
         const furfrouEntry = allEntries.find(e => e.dexId === 676 && !e.isForm);
         if (furfrouEntry) {
             furfrouEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/676-natural.png";
-            furfrouEntry.displayName = "Furfrou (Natural Forme)";
+            if (!singleFurfrouMode) {
+              furfrouEntry.displayName = "Furfrou (Natural Forme)";
+            } else {
+              furfrouEntry.displayName = "Furfrou";
+            }
         }
         const meowsticEntry = allEntries.find(e => e.dexId === 678 && !e.isForm);
         if (meowsticEntry) {
@@ -2109,17 +4333,31 @@
         }
         const pumpkabooEntry = allEntries.find(e => e.dexId === 710 && !e.isForm);
         if (pumpkabooEntry) {
-            pumpkabooEntry.pokemonName = "pumpkaboo-small";
+          if(!singlePumpkabooGourgeistMode) {
+            pumpkabooEntry.pokemonName = "pumpkaboo-average";
             pumpkabooEntry.spriteOverride =
-        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-small.png";
-            pumpkabooEntry.displayName = "Pumpkaboo (Small Size)";
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-average.png";
+            pumpkabooEntry.displayName = "Pumpkaboo (Average Size)";
+          } else {
+            pumpkabooEntry.pokemonName = "pumpkaboo-average";
+            pumpkabooEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/710-average.png";
+            pumpkabooEntry.displayName = "Pumpkaboo";
+            }
         }
         const gourgeistEntry = allEntries.find(e => e.dexId === 711 && !e.isForm);
         if (gourgeistEntry) {
-            gourgeistEntry.pokemonName = "gourgeist-small";
+          if (!singlePumpkabooGourgeistMode) {
+            gourgeistEntry.pokemonName = "gourgeist-average";
             gourgeistEntry.spriteOverride =
-        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-small.png";
-            gourgeistEntry.displayName = "Gourgeist (Small Size)";
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-average.png";
+            gourgeistEntry.displayName = "Gourgeist (Average Size)";
+          } else {
+            gourgeistEntry.pokemonName = "gourgeist-average";
+            gourgeistEntry.spriteOverride =
+        "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/711-average.png";
+            gourgeistEntry.displayName = "Gourgeist";
+          }
         }
         const zygardeEntry = allEntries.find(e => e.dexId === 718 && !e.isForm);
         if (zygardeEntry) {
@@ -2140,7 +4378,11 @@
             lycanrocEntry.pokemonName = "lycanroc-midday";
             lycanrocEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/745-midday.png";
-            lycanrocEntry.displayName = "Lycanroc (Midday Forme)";
+            if (!singleLycanrocMode) {
+              lycanrocEntry.displayName = "Lycanroc (Midday Forme)";
+            } else {
+              lycanrocEntry.displayName = "Lycanroc";
+            }
         }
         const wishiwashiEntry = allEntries.find(e => e.dexId === 746 && !e.isForm);
         if (wishiwashiEntry) {
@@ -2154,21 +4396,29 @@
             silvallyEntry.pokemonName = "silvally-normal";
             silvallyEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/773-normal.png";
-            silvallyEntry.displayName = "Silvally (Normal Type)";
+            if (!singleSilvallyMode) {
+              silvallyEntry.displayName = "Silvally (Normal Type)";
+            } else {
+              silvallyEntry.displayName = "Silvally";
+            }
         }
         const miniorEntry = allEntries.find(e => e.dexId === 774 && !e.isForm);
         if (miniorEntry) {
             miniorEntry.pokemonName = "minior-red-meteor";
             miniorEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/774-meteor.png";
-            miniorEntry.displayName = "Minior (Meteor Forme)";
+            if (!singleMiniorMode) {
+              miniorEntry.displayName = "Minior (Meteor Forme)";
+            } else {
+              miniorEntry.displayName = "Minior";
+            }
         }
         const mimikyuEntry = allEntries.find(e => e.dexId === 778 && !e.isForm);
         if (mimikyuEntry) {
             mimikyuEntry.pokemonName = "mimikyu-disguised";
             mimikyuEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/778-disguised.png";
-            mimikyuEntry.displayName = "Mimikyu (Disquised Forme)";
+            mimikyuEntry.displayName = "Mimikyu";
         }
         const toxtricityEntry = allEntries.find(e => e.dexId === 849 && !e.isForm);
         if (toxtricityEntry) {
@@ -2182,7 +4432,11 @@
             alcremieEntry.pokemonName = "alcremie";
             alcremieEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/fallback/869-vanilla-cream-strawberry-sweet.png";
-            alcremieEntry.displayName = "Alcremie (Vanilla Cream/Strawberry)";
+            if (!singleAlcremieMode) {
+              alcremieEntry.displayName = "Alcremie (Vanilla Cream/Strawberry Sweet)";
+            } else {
+              alcremieEntry.displayName = "Alcremie";
+            }
         }
         const eiscueEntry = allEntries.find(e => e.dexId === 875 && !e.isForm);
         if (eiscueEntry) {
@@ -2253,7 +4507,11 @@
             squawkabillyEntry.pokemonName = "squawkabilly-green-plumage"
             squawkabillyEntry.spriteOverride =
         "https://s3.pokeos.com/pokeos-uploads/assets/pokemon/home/931.png";
-            squawkabillyEntry.displayName = "Squawkabilly (Green Plumage)";
+            if (!singleSquawkabillyMode) {
+              squawkabillyEntry.displayName = "Squawkabilly (Green Plumage)";
+            } else {
+              squawkabillyEntry.displayName = "Squawkabilly"
+            }
         }
         const palafinEntry = allEntries.find(e => e.dexId === 964 && !e.isForm);
         if (palafinEntry) {
@@ -2289,222 +4547,466 @@
           terapagosEntry.displayName = "Terapagos (Normal Form)"
         }
 
-        statusMain.textContent =
-          "Pokédex loaded: " + allEntries.length + " entries (species + forms).";
-        statusProgress.textContent =
-          "Press Start to begin, or it will resume if you had a previous session.";
-        startBtn.disabled = false;
-        resetBtn.disabled = false;
-        musicBtn.disabled = false;
+        
+    }
 
-        restoreStateIfExists();
-      } catch (err) {
-        console.error(err);
-        statusMain.textContent = "Error loading Pokédex.";
-        statusProgress.textContent = "Check your connection and reload the page.";
+    function shuffleInPlace(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
       }
     }
 
-    function initVolumeControl() {
-        if (!bgm || !volumeSlider) return;
+    async function applyOrderingMode() {
+      if (!allEntries || allEntries.length === 0) return;
 
-        // Load saved volume or default to 0.7 (70%)
-        const saved = parseFloat(localStorage.getItem(VOLUME_KEY));
-        const initialVolume = isNaN(saved) ? 0.7 : saved;
+      const baseSort = (a, b) => {
+        if (a.dexId !== b.dexId) return a.dexId - b.dexId;
+        if (!!a.isForm !== !!b.isForm) return a.isForm ? 1 : -1;
+        return 0;
+      };
 
-        bgm.volume = initialVolume;
-        volumeSlider.value = Math.round(initialVolume * 100);
+      if (orderingMode === "national") {
+        allEntries.sort(baseSort);
+        return;
+      }
 
-        // Update volume live as the slider moves
-        volumeSlider.addEventListener("input", () => {
-        const v = volumeSlider.value / 100; // 0.0–1.0
-        bgm.volume = v;
-        localStorage.setItem(VOLUME_KEY, v.toString());
+      if (orderingMode === "random") {
+        shuffleInPlace(allEntries);
+        return;
+      }
+
+      if (orderingMode === "staged") {
+        const grass = new Set([1, 152, 252, 387, 495, 650, 722, 810, 906]);
+        const grassA = new Set([2, 153, 253, 388, 496, 651, 723, 811, 907]);
+        const grassB = new Set([3, 154, 254, 389, 497, 652, 724, 812, 908]);
+        const fire  = new Set([4, 155, 255, 390, 498, 653, 725, 813, 909]);
+        const fireA = new Set([5, 156, 256, 391, 499, 654, 726, 814, 910]);
+        const fireB = new Set([6, 157, 257, 392, 500, 655, 727, 815, 911]);
+        const water = new Set([7, 158, 258, 393, 501, 656, 728, 816, 912]);
+        const waterA = new Set([8, 159, 259, 394, 502, 657, 729, 817, 913]);
+        const waterB = new Set([9, 160, 260, 395, 503, 658, 730, 818, 914]);
+        const routeOneBug = new Set([10, 13, 165, 167, 265, 401, 540, 543, 664, 736, 824, 917, 919]);
+        const routeOneBugA = new Set([11, 14, 166, 168, 266, 268, 402, 541, 544, 665, 737, 825, 918, 920]);
+        const routeOneBugB = new Set([12, 15, 267, 269, 542, 545, 666, 738, 826]);
+        const routeOneBird = new Set([16, 21, 163, 276, 278, 396, 519, 661, 731, 821, 940]);
+        const routeOneBirdA = new Set([17, 22, 164, 277, 279, 397, 520, 662, 732, 822, 941]);
+        const routeOneBirdB = new Set([18, 398, 521, 663, 733, 823]);
+        const routeOneNormal = new Set([19, 161, 263, 399, 504, 659, 734, 819, 915]);
+        const routeOneNormalA = new Set([20, 162, 264, 400, 505, 660, 735, 820, 916]);
+        const routeOneNormalB = new Set([862]);
+        const routeOneOther = new Set([261, 403, 506, 509, 827, 831]);
+        const routeOneOtherA = new Set([262, 404, 507, 510, 828, 832]);
+        const routeOneOtherB = new Set([405, 508]);
+        const pikaclones = new Set([172]);
+        const pikaclonesA = new Set([25, 26, 311, 312, 417, 587, 702, 777, 778, 877, 921, 922, 923]);
+        const eeveelutions = new Set([133, 134, 135, 136, 196, 197, 470, 471, 700]);
+        const elementalMonkey = new Set([511, 513, 515]);
+        const elementalMonkeyA = new Set([512, 514, 516]);
+        const fossils = new Set([138, 140, 142, 345, 347, 408, 410, 564, 566, 696, 698, 880, 881, 882, 883]);
+        const fossilsA = new Set([139, 141, 346, 348, 409, 411, 565, 567, 697, 699]);
+        const convergent = new Set([948, 960, 1012]);
+        const convergentA = new Set([949, 961, 1013]);
+        const pseudoLegendary = new Set([147, 246, 371, 374, 443, 633, 704, 782, 885, 996]);
+        const pseudoLegendaryA = new Set([148, 247, 372, 375, 444, 634, 705, 783, 886, 997]);
+        const pseudoLegendaryB = new Set([149, 248, 373, 376, 445, 635, 706, 784, 887, 998]);
+        const legendary = new Set([144, 145, 146, 150]);
+        const mythical = new Set([151]);
+        const legendaryA = new Set([243, 244, 245, 249, 250]);
+        const mythicalA = new Set([251]);
+        const legendaryB = new Set([377, 378, 379, 380, 381, 382, 383, 384]);
+        const mythicalB = new Set([385, 386]);
+        const legendaryC = new Set([480, 481, 482, 483, 484, 485, 486, 487, 488]);
+        const mythicalC = new Set([489, 490, 491, 492, 493]);
+        const legendaryD = new Set([638, 639, 640, 641, 642, 645, 643, 644, 646]);
+        const mythicalD = new Set([494, 647, 648, 649]);
+        const legendaryE = new Set([716, 717, 718]);
+        const mythicalE = new Set([719, 720, 721]);
+        const ultraBeast = new Set([793, 794, 795, 796, 797, 798, 799, 803, 804, 805, 806]);
+        const legendaryF = new Set([772, 773, 785, 786, 787, 788, 789, 790, 791, 792, 800]);
+        const mythicalF = new Set([801, 802, 807, 808, 809]);
+        const legendaryG = new Set([888, 889, 890, 891, 892, 894, 895, 896, 897, 898]);
+        const noblePokemon = new Set([58, 100, 123, 548, 712]);
+        const noblePokemonA = new Set([59, 101, 212]);
+        const noblePokemonB = new Set([900]);
+        const noblePokemonC = new Set([549, 713]);
+        const ridePokemon = new Set([215, 216, 234, 550, 627]);
+        const ridePokemonA = new Set([461, 903]);
+        const ridePokemonB = new Set([217, 899, 902]);
+        const ridePokemonC = new Set([628, 901]);
+        const mythicalG = new Set([893]);
+        const legendaryH = new Set([905]);
+        const pastParadox = new Set([984, 985, 986, 987, 988, 989, 1005, 1009, 1020, 1021]);
+        const futureParadox = new Set([990, 991, 992, 993, 994, 995, 1006, 1010, 1022, 1023]);
+        const legendaryI = new Set([1001, 1002, 1003, 1004, 1007, 1008, 1014, 1015, 1016, 1017, 1024]);
+        const mythicalI = new Set([1025]);
+        const megasXY = new Set([63, 92, 115, 127, 129, 179, 214, 228, 280, 303, 307, 309, 353, 359, 447, 459]);
+        const megasXYA = new Set([64, 93, 130, 180, 229, 281, 308, 310, 354, 448, 460]);
+        const megasXYB = new Set([65, 94, 181, 282, 475]);
+        const megaORAS = new Set([79, 95, 302, 318, 322, 333, 361, 427, 531]);
+        const megaORASA = new Set([80, 199, 208, 319, 323, 334, 362, 478]);
+        const megaORASB = new Set([428]);
+        const alolan = new Set([27, 37, 50, 52, 74, 88, 102, 104]);
+        const alolanA = new Set([28, 38, 51, 53, 863]);
+        const alolanB = new Set([75, 89, 103, 105]);
+        const alolanC = new Set([76]);
+        const galarian = new Set([77, 83, 109, 439]);
+        const galarianA = new Set([222, 554, 562, 618]);
+        const galarianB = new Set([78, 865]);
+        const galarianC = new Set([110, 122, 864]);
+        const galarianD = new Set([555, 563, 867]);
+        const galarianE = new Set([866]);
+        const gMax = new Set([66, 98, 131, 446, 568, 833, 837, 840, 843, 848, 850, 856, 859, 868, 878, 884]);
+        const gMaxA = new Set([67, 99, 143, 569, 834, 838, 841, 842, 1011]);
+        const gMaxB = new Set([844, 849, 851, 857, 860, 869, 879, 1018]);
+        const gMaxC = new Set([68, 839, 1019]);
+        const gMaxD = new Set([858, 861]);
+        const hisuian = new Set([211, 570, 904]);
+        const hisuianA = new Set([571]);
+        const paldean = new Set([128, 194, 195, 980]);
+        const paradoxInspire = new Set([231, 174, 590]);
+        const paradoxInspireA = new Set([200, 636]);
+        const paradoxInspireB = new Set([81, 225, 296, 967]);
+        const paradoxInspireC = new Set([232]);
+        const paradoxInspireD = new Set([39, 591]);
+        const paradoxInspireE = new Set([429, 637]);
+        const paradoxInspireF = new Set([82, 297]);
+        const paradoxInspireG = new Set([40, 462]);
+        const megasZA = new Set([173]);
+        const megasZAA = new Set([69, 120, 227, 529, 543, 559, 602, 607, 667, 669, 686, 688, 690, 701, 780, 870]);
+        const megasZAB = new Set([35, 70, 121, 530, 544, 560, 603, 608, 668, 670, 687, 689, 691]);
+        const megasZAC = new Set([36, 71, 545, 604, 609, 671]);
+        const megasMD = new Set([433, 622, 677, 739, 767, 951, 969, 978]);
+        const megasMDA = new Set([358, 623, 678, 740, 768, 952, 970]);
+        const rocket = new Set([23, 41, 43, 48, 96]);
+        const rocketA = new Set([24, 42, 44, 49, 97]);
+        const rocketB = new Set([196]);
+        const rocketC = new Set([45, 182]);
+        const magma = new Set([343, 344]);
+        const aqua = new Set([320, 321]);
+        const galactic = new Set([198, 431, 434, 436, 453]);
+        const galacticA = new Set([430, 432, 435, 437, 454]);
+        const plasma = new Set([336, 451, 551, 624]);
+        const plasmaA = new Set([452, 552, 625]);
+        const plasmaB = new Set([553, 983]);
+        const flare = new Set([316, 317]);
+        const skull = new Set([747, 753, 757]);
+        const skullA = new Set([748, 754, 758]);
+        const rainbowRocket = new Set([56, 72]);
+        const rainbowRocketA = new Set([57, 73]);
+        const rainbowRocketB = new Set([979]);
+        const yell = new Set([674, 675]);
+        const star = new Set([944, 945]);
+        const erikaRB = new Set([114, 465]);
+        const giovanniRB = new Set([29, 32, 111]);
+        const giovanniRBA = new Set([30, 33, 112]);
+        const giovanniRBB = new Set([31, 34, 464]);
+        const loreleiRB = new Set([86, 90, 238]);
+        const loreleiRBA = new Set([87, 91, 124]);
+        const brunoRB = new Set([236]);
+        const brunoRBA = new Set([106, 107, 237]);
+        const whitneyGS = new Set([241]);
+        const chuckGS = new Set([60, 61, 62, 186]);
+        const pryceGS = new Set([220, 221, 473]);
+        const clairGS = new Set([116, 117, 230]);
+        const mistyGS = new Set([54, 55]);
+        const surgeGS = new Set([239]);
+        const surgeGSA = new Set([125, 466]);
+        const erikaGS = new Set([187, 188, 189]);
+        const blaineGS = new Set([218, 240]);
+        const blaineGSA = new Set([219]);
+        const blaineGSB = new Set([126, 467]);
+        const willGS = new Set([177, 178]);
+        const kogaGS = new Set([204, 205]);
+        const roxanneRS = new Set([299, 476]);
+        const flanneryRS = new Set([324]);
+        const normanRS = new Set([287, 288, 289]);
+        const tateLizaRS = new Set([337, 338]);
+        const wallaceRS = new Set([118, 339, 349, 363, 370]);
+        const wallaceRSA = new Set([119, 340, 350, 364, 365]);
+        const sidneyRS = new Set([273, 331]);
+        const sidneyRSA = new Set([274, 332]);
+        const sidneyRSB = new Set([275]);
+        const phoebeRS = new Set([355, 356, 477]);
+        const drakeRS = new Set([328, 329, 330]);
+        const normanE = new Set([327]);
+        const juanE = new Set([341, 342]);
+        const wallaceE = new Set([270, 271, 272]);
+
+        const groupRank = (e) => {
+          if (grass.has(e.dexId)) return 0;
+          if (grassA.has(e.dexId)) return 1;
+          if (grassB.has(e.dexId)) return 2;
+          if (fire.has(e.dexId)) return 3;
+          if (fireA.has(e.dexId)) return 4;
+          if (fireB.has(e.dexId)) return 5;
+          if (water.has(e.dexId)) return 6;
+          if (waterA.has(e.dexId)) return 7;
+          if (waterB.has(e.dexId)) return 8;
+          if (routeOneBug.has(e.dexId)) return 9;
+          if (routeOneBugA.has(e.dexId)) return 10;
+          if (routeOneBugB.has(e.dexId)) return 11;
+          if (routeOneBird.has(e.dexId)) return 12;
+          if (routeOneBirdA.has(e.dexId)) return 13;
+          if (routeOneBirdB.has(e.dexId)) return 14;
+          if (routeOneNormal.has(e.dexId)) return 15;
+          if (routeOneNormalA.has(e.dexId)) return 16;
+          if (routeOneNormalB.has(e.dexId)) return 17;
+          if (routeOneOther.has(e.dexId)) return 18;
+          if (routeOneOtherA.has(e.dexId)) return 19;
+          if (routeOneOtherB.has(e.dexId)) return 20;          
+          if (pikaclones.has(e.dexId)) return 21;          
+          if (pikaclonesA.has(e.dexId)) return 22;
+          if (eeveelutions.has(e.dexId)) return 23;
+          if (elementalMonkey.has(e.dexId)) return 24;
+          if (elementalMonkeyA.has(e.dexId)) return 25;
+          if (fossils.has(e.dexId)) return 26;
+          if (fossilsA.has(e.dexId)) return 27;
+          if (convergent.has(e.dexId)) return 28;
+          if (convergentA.has(e.dexId)) return 29;
+          if (pseudoLegendary.has(e.dexId)) return 30;
+          if (pseudoLegendaryA.has(e.dexId)) return 31;
+          if (pseudoLegendaryB.has(e.dexId)) return 32;
+          if (legendary.has(e.dexId)) return 33;
+          if (mythical.has(e.dexId)) return 34;
+          if (legendaryA.has(e.dexId)) return 35;
+          if (mythicalA.has(e.dexId)) return 36;
+          if (legendaryB.has(e.dexId)) return 37;
+          if (mythicalB.has(e.dexId)) return 38;
+          if (legendaryC.has(e.dexId)) return 39;
+          if (mythicalC.has(e.dexId)) return 40;
+          if (legendaryD.has(e.dexId)) return 41;
+          if (mythicalD.has(e.dexId)) return 42;
+          if (legendaryE.has(e.dexId)) return 43;
+          if (mythicalE.has(e.dexId)) return 44;
+          if (ultraBeast.has(e.dexId)) return 45;
+          if (legendaryF.has(e.dexId)) return 46;
+          if (mythicalF.has(e.dexId)) return 47;
+          if (legendaryG.has(e.dexId)) return 48;
+          if (noblePokemon.has(e.dexId)) return 49;
+          if (noblePokemonA.has(e.dexId)) return 50;
+          if (noblePokemonB.has(e.dexId)) return 51;
+          if (noblePokemonC.has(e.dexId)) return 52;
+          if (ridePokemon.has(e.dexId)) return 53;
+          if (ridePokemonA.has(e.dexId)) return 54;
+          if (ridePokemonB.has(e.dexId)) return 55;
+          if (ridePokemonC.has(e.dexId)) return 56;
+          if (mythicalG.has(e.dexId)) return 57;
+          if (legendaryH.has(e.dexId)) return 58;
+          if (pastParadox.has(e.dexId)) return 59;
+          if (futureParadox.has(e.dexId)) return 60;
+          if (legendaryI.has(e.dexId)) return 61;
+          if (mythicalI.has(e.dexId)) return 62;
+          if (megasXY.has(e.dexId)) return 63;
+          if (megasXYA.has(e.dexId)) return 64;
+          if (megasXYB.has(e.dexId)) return 65;
+          if (megaORAS.has(e.dexId)) return 66;
+          if (megaORASA.has(e.dexId)) return 67;
+          if (megaORASB.has(e.dexId)) return 68;
+          if (alolan.has(e.dexId)) return 69;
+          if (alolanA.has(e.dexId)) return 70;
+          if (alolanB.has(e.dexId)) return 71;
+          if (alolanC.has(e.dexId)) return 72;
+          if (galarian.has(e.dexId)) return 73;
+          if (galarianA.has(e.dexId)) return 74;
+          if (galarianB.has(e.dexId)) return 75;
+          if (galarianC.has(e.dexId)) return 76;
+          if (galarianD.has(e.dexId)) return 77;
+          if (galarianE.has(e.dexId)) return 78;
+          if (gMax.has(e.dexId)) return 79;
+          if (gMaxA.has(e.dexId)) return 80;
+          if (gMaxB.has(e.dexId)) return 81;
+          if (gMaxC.has(e.dexId)) return 82;
+          if (gMaxD.has(e.dexId)) return 83;
+          if (hisuian.has(e.dexId)) return 84;
+          if (hisuianA.has(e.dexId)) return 85;
+          if (paldean.has(e.dexId)) return 86;
+          if (paradoxInspire.has(e.dexId)) return 87;
+          if (paradoxInspireA.has(e.dexId)) return 88;
+          if (paradoxInspireB.has(e.dexId)) return 89;
+          if (paradoxInspireC.has(e.dexId)) return 90;
+          if (paradoxInspireD.has(e.dexId)) return 91;
+          if (paradoxInspireE.has(e.dexId)) return 92;
+          if (paradoxInspireF.has(e.dexId)) return 93;
+          if (paradoxInspireG.has(e.dexId)) return 94;
+          if (megasZA.has(e.dexId)) return 95;
+          if (megasZAA.has(e.dexId)) return 96;
+          if (megasZAB.has(e.dexId)) return 97;
+          if (megasZAC.has(e.dexId)) return 98;
+          if (megasMD.has(e.dexId)) return 99;
+          if (megasMDA.has(e.dexId)) return 100;
+          if (rocket.has(e.dexId)) return 101;
+          if (rocketA.has(e.dexId)) return 102;
+          if (rocketB.has(e.dexId)) return 103;
+          if (rocketC.has(e.dexId)) return 104;
+          if (magma.has(e.dexId)) return 105;
+          if (aqua.has(e.dexId)) return 106;
+          if (galactic.has(e.dexId)) return 107;
+          if (galacticA.has(e.dexId)) return 108;
+          if (plasma.has(e.dexId)) return 109;
+          if (plasmaA.has(e.dexId)) return 110;
+          if (plasmaB.has(e.dexId)) return 111;
+          if (flare.has(e.dexId)) return 112;
+          if (skull.has(e.dexId)) return 113;
+          if (skullA.has(e.dexId)) return 114;
+          if (rainbowRocket.has(e.exId)) return 115;
+          if (rainbowRocketA.has(e.exId)) return 116;
+          if (rainbowRocketB.has(e.exId)) return 117;
+          if (yell.has(e.dexId)) return 118;
+          if (star.has(e.dexId)) return 119;
+          if (erikaRB.has(e.dexId)) return 120;
+          if (giovanniRB.has(e.dexId)) return 121;
+          if (giovanniRBA.has(e.dexId)) return 122;
+          if (giovanniRBB.has(e.dexId)) return 123;
+          if (loreleiRB.has(e.dexId)) return 124;
+          if (loreleiRBA.has(e.dexId)) return 124;
+          if (brunoRB.has(e.dexId)) return 125;
+          if (brunoRBA.has(e.dexId)) return 126;
+          if (whitneyGS.has(e.dexId)) return 127;
+          if (chuckGS.has(e.dexId)) return 128;
+          if (pryceGS.has(e.dexId)) return 129;
+          if (clairGS.has(e.dexId)) return 130;
+          if (mistyGS.has(e.dexId)) return 131;
+          if (surgeGS.has(e.dexId)) return 132;
+          if (surgeGSA.has(e.dexId)) return 133;
+          if (erikaGS.has(e.dexId)) return 134;
+          if (blaineGS.has(e.dexId)) return 135;
+          if (blaineGSA.has(e.dexId)) return 136;
+          if (blaineGSB.has(e.dexId)) return 137;
+          if (willGS.has(e.dexId)) return 138;
+          if (kogaGS.has(e.dexId)) return 139;
+          if (roxanneRS.has(e.dexId)) return 140;
+          if (flanneryRS.has(e.dexId)) return 141;
+          if (normanRS.has(e.dexId)) return 142;
+          if (tateLizaRS.has(e.dexId)) return 143;
+          if (wallaceRS.has(e.dexId)) return 144;
+          if (wallaceRSA.has(e.dexId)) return 145;
+          if (sidneyRS.has(e.dexId)) return 146;
+          if (sidneyRSA.has(e.dexId)) return 147;
+          if (sidneyRSB.has(e.dexId)) return 148;
+          if (phoebeRS.has(e.dexId)) return 149;
+          if (drakeRS.has(e.dexId)) return 150;
+          if (normanE.has(e.dexId)) return 151;
+          if (juanE.has(e.dexId)) return 152;
+          if (wallaceE.has(e.dexId)) return 153;
+          return 999;
+        };
+
+        allEntries.sort((a, b) => {
+          const ga = groupRank(a);
+          const gb = groupRank(b);
+          if (ga !== gb) return ga - gb;
+          return baseSort(a, b);
         });
-    }
+        return;
+      }
 
-    // Call this once after the DOM is ready and bgm is defined
-    initVolumeControl();
+      if (orderingMode === "families") {
+        // Custom-ordered families first (exact order from ORDERED_FAMILIES_GROUPS),
+        // then continue through the rest of the National Dex grouped by evolution chains.
+        const baseSort = (a, b) => {
+          if (a.dexId !== b.dexId) return a.dexId - b.dexId;
+          if (!!a.isForm !== !!b.isForm) return a.isForm ? 1 : -1;
+          return 0;
+        };
 
+        const normalizeSlug = (s) =>
+          String(s || "")
+            .trim()
+            .toLowerCase()
+            .replace(/[’']/g, "")
+            .replace(/\./g, "")
+            .replace(/\s+/g, "-");
 
-    async function toggleMusic() {
-        if (!bgm) return;
-
-        if (!musicEnabled) {
-            try {
-                await bgm.play();
-                musicEnabled = true;
-                musicBtn.textContent = "Music: On";
-            } catch (err) {
-                console.error("Could not start music:", err);
-                // If browser blocks autoplay, you might see an error here.
-            }
-        } else {
-            bgm.pause();
-            musicEnabled = false;
-            musicBtn.textContent = "Music: Off";
+        // Map normalized base species name -> dexId (so we can turn your list into dex positions)
+        const baseDexByName = {};
+        for (const e of allEntries) {
+          if (e && !e.isForm && e.pokemonName) {
+            baseDexByName[normalizeSlug(e.pokemonName)] = e.dexId;
+          }
         }
-    }
 
-
-    function setCardContent(side, entryIndex) {
-      const entry = allEntries[entryIndex];
-      const prettyName = fullDisplayName(entry);
-      const dexId = entry.dexId;
-
-      if (side === "left") {
-        nameLeft.textContent = prettyName;
-        idLeft.textContent = "No." + dexId;
-        imgLeft.style.display = "none";
-        imgPlaceholderLeft.style.display = "block";
-        imgPlaceholderLeft.textContent = "Loading…";
-
-        getPokemonInfo(entry.pokemonName, entry.spriteOverride).then((info) => {
-          const ballEl = document.querySelector("#card-left .selection-ball");
-
-          // Use overrides if present
-          const primaryType = entry.primaryTypeOverride || info.primaryType;
-          const secondaryType =
-            entry.secondaryTypeOverride !== undefined
-              ? entry.secondaryTypeOverride
-              : info.secondaryType;
-
-          const primaryColor = TYPE_COLORS[primaryType] || "#ef4444";
-          const secondaryColor = TYPE_COLORS[secondaryType] || primaryColor;
-    
-          if (ballEl) {
-            ballEl.style.background =
-              "linear-gradient(to bottom," +
-              primaryColor + " 0%," +
-              primaryColor + " 48%,#111827 48%,#111827 52%," +
-              secondaryColor + " 52%," +
-              secondaryColor + " 100%)";
-    
-            ballEl.classList.remove(
-              "mega-ring",
-              "gmax-ring",
-              "regional-ring",
-              "variant-ring",
-              "special-ring"
-            );
-
-            let ringKind = entry.formKind || null;
-            if (!ringKind && entry.isForm) {
-              if (/alola|galar|hisui|paldea/i.test(entry.pokemonName)) {
-                ringKind = "regional";
-              }
-            }
-            if (ringKind) {
-              ballEl.classList.add(ringKind + "-ring");
+        // Build dexId -> { groupIndex, withinGroupPos } for every dexId in ORDERED_FAMILIES_GROUPS
+        const customDexPos = {}; // dexId -> { gi, pi }
+        let gi = 0;
+        for (const group of ORDERED_FAMILIES_GROUPS) {
+          if (!Array.isArray(group)) continue;
+          let pi = 0;
+          for (const rawName of group) {
+            const name = normalizeSlug(rawName);
+            const dexId = baseDexByName[name];
+            if (dexId != null && customDexPos[dexId] == null) {
+              customDexPos[dexId] = { gi, pi };
+              pi++;
+            } else if (dexId == null) {
+              console.warn("Ordered Families: species not found in dex data:", rawName);
             }
           }
-    
-          // ✅ Prefer per-entry override
-          const spriteUrl = entry.spriteOverride || info.sprite;
-    
-          if (spriteUrl) {
-            imgLeft.src = spriteUrl;
-            imgLeft.style.display = "block";
-            imgPlaceholderLeft.style.display = "none";
-          } else {
-            imgLeft.style.display = "none";
-            imgPlaceholderLeft.style.display = "block";
-            imgPlaceholderLeft.textContent = "No image";
+          gi++;
+        }
+
+        // For non-custom dexIds, group by evolution chain id (via PokéAPI),
+        // then sort those chains by their minimum dexId (National Dex order).
+        const dexIds = Array.from(new Set(allEntries.map(e => e.dexId)));
+
+        const chainIdByDex = {};
+        const chainMinDex = {};
+
+        async function fetchChainId(dexId) {
+          try {
+            const res = await fetch("https://pokeapi.co/api/v2/pokemon-species/" + dexId + "/");
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const data = await res.json();
+            const url = data?.evolution_chain?.url || "";
+            const m = url.match(/\/evolution-chain\/(\d+)\/?/);
+            return m ? parseInt(m[1], 10) : null;
+          } catch (err) {
+            console.warn("Failed to fetch evolution chain for dexId", dexId, err);
+            return null;
           }
+        }
+
+        // Only fetch chain ids for dex numbers that are NOT explicitly positioned by your custom list.
+        for (const dexId of dexIds) {
+          if (customDexPos[dexId] != null) continue;
+          const chainId = await fetchChainId(dexId);
+          chainIdByDex[dexId] = chainId == null ? dexId : chainId;
+          chainMinDex[chainIdByDex[dexId]] = Math.min(
+            chainMinDex[chainIdByDex[dexId]] ?? Infinity,
+            dexId
+          );
+        }
+
+        allEntries.sort((a, b) => {
+          const ca = customDexPos[a.dexId];
+          const cb = customDexPos[b.dexId];
+
+          // Custom families always come first, in the exact group + within-group order you defined.
+          if (ca && cb) {
+            if (ca.gi !== cb.gi) return ca.gi - cb.gi;
+            if (ca.pi !== cb.pi) return ca.pi - cb.pi;
+            return baseSort(a, b);
+          }
+          if (ca && !cb) return -1;
+          if (!ca && cb) return 1;
+
+          // Everyone else: grouped by evolution chain, ordered by the chain's min dexId.
+          const ga = chainIdByDex[a.dexId] ?? a.dexId;
+          const gb = chainIdByDex[b.dexId] ?? b.dexId;
+          const ma = chainMinDex[ga] ?? a.dexId;
+          const mb = chainMinDex[gb] ?? b.dexId;
+          if (ma !== mb) return ma - mb;
+          if (ga !== gb) return ga - gb;
+          return baseSort(a, b);
         });
-
-      } else {
-        nameRight.textContent = prettyName;
-        idRight.textContent = "No." + dexId;
-        imgRight.style.display = "none";
-        imgPlaceholderRight.style.display = "block";
-        imgPlaceholderRight.textContent = "Loading…";
-
-        getPokemonInfo(entry.pokemonName, entry.spriteOverride).then((info) => {
-          const ballEl = document.querySelector("#card-right .selection-ball");
-
-          const primaryType = entry.primaryTypeOverride || info.primaryType;
-          const secondaryType =
-            entry.secondaryTypeOverride !== undefined
-              ? entry.secondaryTypeOverride
-              : info.secondaryType;
-    
-          const primaryColor = TYPE_COLORS[primaryType] || "#ef4444";
-          const secondaryColor = TYPE_COLORS[secondaryType] || primaryColor;
-    
-          if (ballEl) {
-            ballEl.style.background =
-              "linear-gradient(to bottom," +
-              primaryColor + " 0%," +
-              primaryColor + " 48%,#111827 48%,#111827 52%," +
-              secondaryColor + " 52%," +
-              secondaryColor + " 100%)";
-
-            ballEl.classList.remove(
-              "mega-ring",
-              "gmax-ring",
-              "regional-ring",
-              "variant-ring",
-              "special-ring"
-            );
-
-            let ringKind = entry.formKind || null;
-            if (!ringKind && entry.isForm) {
-              if (/alola|galar|hisui|paldea/i.test(entry.pokemonName)) {
-                ringKind = "regional";
-              }
-            }
-            if (ringKind) {
-              ballEl.classList.add(ringKind + "-ring");
-            }
-          }
-    
-          // ✅ Prefer per-entry override
-          const spriteUrl = entry.spriteOverride || info.sprite;
-
-          if (spriteUrl) {
-            imgRight.src = spriteUrl;
-            imgRight.style.display = "block";
-            imgPlaceholderRight.style.display = "none";
-          } else {
-            imgRight.style.display = "none";
-            imgPlaceholderRight.style.display = "block";
-            imgPlaceholderRight.textContent = "No image";
-          }
-        });
+        return;
       }
-    }
 
-
-    function updateButtonsEnabled(enabled) {
-      btnLeft.disabled = !enabled;
-      btnRight.disabled = !enabled;
-      skipBtn.disabled = !enabled;
+      allEntries.sort(baseSort);
     }
-
-    function updateInsertionStatusTexts() {
-      const entry = allEntries[currentInsertIndex];
-      statusMain.textContent =
-        "Inserting " +
-        fullDisplayName(entry) +
-        " (No." +
-        entry.dexId +
-        ") into your list.";
-      const lastDex = allEntries[allEntries.length - 1].dexId;
-      statusProgress.textContent =
-        "Progress: No." + entry.dexId + " out of " + lastDex;
-    }
-
-    function askUnownMode() {
-      const choice = confirm(
-        "Do you want to rank ALL Unown forms?\n\n" +
-        "YES = Shows all Unown letters\n" +
-        "NO = Only shows Unown A"
-      );
-      singleUnownMode = !choice;
-    }
-    
-    function startSorting() {
+function startSorting() {
       if (allEntries.length < 2) return;
       ranking = [];
       currentInsertIndex = null;
@@ -2513,7 +5015,6 @@
       logBox.innerHTML = "";
       log("Sorting started. First: Bulbasaur vs Ivysaur.");
       statusMain.textContent = "Round 1: Pick between Bulbasaur and Ivysaur.";
-      statusProgress.textContent = "";
       startBtn.textContent = "Restart";
 
       compareTitle.textContent = "Which do you like more to start?";
@@ -2550,6 +5051,8 @@
       }
 
       const currentEntryIndex = currentInsertIndex;
+
+      compareRankPos = getGroupStartPos(compareRankPos);
       const opponentEntryIndex = ranking[compareRankPos];
 
       const challenger = allEntries[currentEntryIndex];
@@ -2588,10 +5091,10 @@
       moveToNextInsert();
     }
 
-    function insertCurrentAfterOpponent() {
-      const pos = compareRankPos;
-      const opponentIndex = ranking[pos];
-      ranking.splice(pos + 1, 0, currentInsertIndex);
+    function insertCurrentAfterOpponentAt(pos) {
+      const safePos = Math.max(0, Math.min(pos, ranking.length - 1));
+      const opponentIndex = ranking[safePos];
+      ranking.splice(safePos + 1, 0, currentInsertIndex);
 
       const entry = allEntries[currentInsertIndex];
       const opp = allEntries[opponentIndex];
@@ -2623,9 +5126,9 @@
     function finishSorting() {
       mode = "done";
       updateButtonsEnabled(false);
-      skipBtn.disabled = true;
+      tieBtn.disabled = true;
+      undoBtn.disabled = actionHistory.length === 0;
       statusMain.textContent = "You’ve ranked the entire Pokédex!";
-      statusProgress.textContent = "";
       compareTitle.textContent = "🎉 Sorting complete. Scroll to bottom for your full ranking in a grid. 🎉";
       log("All entries processed. You now have a full personal ranking.");
       saveState();
@@ -2633,6 +5136,9 @@
 
     function handleChoice(side) {
       if (mode === "idle") return;
+
+      // Record state so Undo can rewind spamming/mistakes.
+      pushHistorySnapshot();
 
       if (mode === "initial") {
         let first, second;
@@ -2658,7 +5164,13 @@
       if (currentInsertIndex === null) return;
 
       const currentIdx = currentInsertIndex;
-      const oppIdx = ranking[compareRankPos];
+
+      // Always compare vs the TOP of a tie-block (if any).
+      const oppPosStart = getGroupStartPos(compareRankPos);
+      const oppPosEnd = getGroupEndPos(oppPosStart);
+      compareRankPos = oppPosStart;
+
+      const oppIdx = ranking[oppPosStart];
 
       const currentEntry = allEntries[currentIdx];
       const oppEntry = allEntries[oppIdx];
@@ -2671,10 +5183,13 @@
             fullDisplayName(oppEntry) +
             "."
         );
-        if (compareRankPos === 0) {
+
+        if (oppPosStart === 0) {
           insertCurrentAtTop();
         } else {
-          compareRankPos--;
+          // Move upward past the whole tie-block.
+          compareRankPos = oppPosStart - 1;
+          compareRankPos = getGroupStartPos(compareRankPos);
           showCurrentComparison();
           saveState();
         }
@@ -2686,34 +5201,59 @@
             fullDisplayName(currentEntry) +
             "."
         );
-        insertCurrentAfterOpponent();
+        insertCurrentAfterOpponentAt(oppPosEnd);
       }
     }
 
-    function skipCurrentBattle() {
+    function handleTie() {
+      if (mode === "idle") return;
+
+      // Record state so Undo can rewind spamming/mistakes.
+      pushHistorySnapshot();
+
       if (mode === "initial") {
-        log("You skipped the very first comparison. Try to pick one to start.");
+        ranking = [0, 1];
+        ensureGroupForEntries(0, 1);
+        log("You tied Bulbasaur and Ivysaur. They will share the same rank.");
+        updateRankingUI();
+
+        currentInsertIndex = 2;
+        startInsertionForCurrent();
+        saveState();
         return;
       }
-      if (mode !== "inserting") return;
 
-      const cur = allEntries[currentInsertIndex];
-      const opp = allEntries[ranking[compareRankPos]];
+      if (mode !== "inserting") return;
+      if (currentInsertIndex === null) return;
+
+      const currentIdx = currentInsertIndex;
+
+      const oppPosStart = getGroupStartPos(compareRankPos);
+      const oppPosEnd = getGroupEndPos(oppPosStart);
+      compareRankPos = oppPosStart;
+
+      const oppIdx = ranking[oppPosStart];
+
+      ensureGroupForEntries(currentIdx, oppIdx);
+
+      ranking.splice(oppPosEnd + 1, 0, currentIdx);
+
+      const entry = allEntries[currentIdx];
+      const opp = allEntries[oppIdx];
+
       log(
-        "Skipped comparison: " +
-          fullDisplayName(cur) +
-          " vs " +
+        fullDisplayName(entry) +
+          " (No." +
+          entry.dexId +
+          ") tied with " +
           fullDisplayName(opp) +
-          "."
+          " (No." +
+          opp.dexId +
+          ")."
       );
 
-      if (compareRankPos === 0) {
-        insertCurrentAtTop();
-      } else {
-        compareRankPos--;
-        showCurrentComparison();
-        saveState();
-      }
+      updateRankingUI();
+      moveToNextInsert();
     }
 
     function resetSorting() {
@@ -2721,6 +5261,9 @@
       currentInsertIndex = null;
       compareRankPos = null;
       mode = "idle";
+      tieGroupByEntry = {};
+      nextTieGroupId = 1;
+      actionHistory = [];
       updateRankingUI();
       compareTitle.textContent = "Waiting to start…";
       nameLeft.textContent = "—";
@@ -2737,16 +5280,16 @@
 
       statusMain.textContent =
         "Pokédex loaded: " + allEntries.length + " entries (species + forms).";
-      statusProgress.textContent = "Press Start to begin.";
       logBox.innerHTML = "";
       log("Sorting reset. Press Start when you’re ready again.");
       updateButtonsEnabled(false);
-      skipBtn.disabled = true;
+      tieBtn.disabled = true;
+      undoBtn.disabled = actionHistory.length === 0;
       startBtn.textContent = "Start!";
       clearState();
     }
 
-    function restoreStateIfExists() {
+    async function restoreStateIfExists() {
       let raw;
       try {
         raw = localStorage.getItem(STORAGE_KEY);
@@ -2756,12 +5299,36 @@
       }
          if (!raw) {
           updateRankingUI();
-          // 👇 Auto-start as soon as the Pokédex is loaded
           if (allEntries.length >= 2) {
+            askUnownMode();
+            askCastformMode();
+            askDeoxysMode();
+            askBurmyMode();
+            askWormadamMode();
+            askRotomMode();
+            askArceusMode();
+            askDeerlingSawsbuckMode();
+            askGenesectMode();
+            askVivillonMode();
+            askFlabebeFloetteFlorgesMode();
+            askFurFrouMode();
+            askPumpkabooGourgeistMode();
+            askLycanrocMode();
+            askSilvallyMode();
+            askMiniorMode();
+            askAlcremieMode();
+            askSquawkabillyMode();
+            askMegasMode();
+            askGMaxMode();
+            askOrderingMode();
+            rebuildAllEntriesFromBase();
+            await applyOrderingMode();
+            resetSorting();
             startSorting();
           }
           return;
         }
+
 
       let data;
       try {
@@ -2789,6 +5356,10 @@
           : null;
       mode = data.mode || "idle";
 
+      tieGroupByEntry = data.tieGroupByEntry && typeof data.tieGroupByEntry === "object" ? data.tieGroupByEntry : {};
+      nextTieGroupId = typeof data.nextTieGroupId === "number" ? data.nextTieGroupId : 1;
+      actionHistory = Array.isArray(data.actionHistory) ? data.actionHistory : [];
+
       updateRankingUI();
       logBox.innerHTML = "";
       startBtn.textContent = "Restart";
@@ -2796,9 +5367,9 @@
       if (mode === "idle") {
         statusMain.textContent =
           "Pokédex loaded: " + allEntries.length + " entries (species + forms).";
-        statusProgress.textContent = "Press Start to begin.";
         updateButtonsEnabled(false);
-        skipBtn.disabled = true;
+        tieBtn.disabled = true;
+      undoBtn.disabled = actionHistory.length === 0;
         log("No active session. Press Start to begin.");
         return;
       }
@@ -2806,10 +5377,10 @@
       if (mode === "done") {
         statusMain.textContent =
           "Previous session finished. You can reset to start over.";
-        statusProgress.textContent = "";
         compareTitle.textContent = "Sorting complete 🎉";
         updateButtonsEnabled(false);
-        skipBtn.disabled = true;
+        tieBtn.disabled = true;
+      undoBtn.disabled = actionHistory.length === 0;
         log("Restored finished ranking from previous session.");
         return;
       }
@@ -2817,12 +5388,12 @@
       if (mode === "initial") {
         statusMain.textContent =
           "Round 1: Pick between Bulbasaur and Ivysaur (resumed).";
-        statusProgress.textContent = "";
         compareTitle.textContent = "Which do you like more to start?";
         setCardContent("left", 0);
         setCardContent("right", 1);
         updateButtonsEnabled(true);
-        skipBtn.disabled = true;
+        tieBtn.disabled = true;
+      undoBtn.disabled = actionHistory.length === 0;
         log("Restored session at the very first comparison.");
         return;
       }
@@ -2847,7 +5418,8 @@
         compareTitle.textContent = "Who do you like more right now?";
         showCurrentComparison();
         updateButtonsEnabled(true);
-        skipBtn.disabled = false;
+        tieBtn.disabled = false;
+        undoBtn.disabled = actionHistory.length === 0;
         log("Restored session mid-insertion. Continue making choices.");
         return;
       }
@@ -2860,8 +5432,30 @@
     });
 
 
-    startBtn.addEventListener("click", () => {
+    startBtn.addEventListener("click", async () => {
       askUnownMode();
+      askCastformMode();
+      askDeoxysMode();
+      askBurmyMode();
+      askWormadamMode();
+      askRotomMode();
+      askArceusMode();
+      askDeerlingSawsbuckMode();
+      askGenesectMode();
+      askVivillonMode();
+      askFlabebeFloetteFlorgesMode();
+      askFurFrouMode();
+      askPumpkabooGourgeistMode();
+      askLycanrocMode();
+      askSilvallyMode();
+      askMiniorMode();
+      askAlcremieMode();
+      askSquawkabillyMode();
+      askMegasMode();
+      askGMaxMode();
+      askOrderingMode();
+      rebuildAllEntriesFromBase();
+      await applyOrderingMode();
       resetSorting();
       startSorting();
     });
@@ -2876,8 +5470,13 @@
       handleChoice("right");
     });
 
-    skipBtn.addEventListener("click", () => {
-      skipCurrentBattle();
+    tieBtn.addEventListener("click", () => {
+      updateButtonsEnabled(false);
+      handleTie();
+    });
+
+    undoBtn.addEventListener("click", () => {
+      undoLastAction();
     });
 
     resetBtn.addEventListener("click", () => {
@@ -2885,7 +5484,6 @@
     });
 
     // --- INIT ---
-
     fetchSpeciesListAndBuildEntries();
   </script>
 </body>
